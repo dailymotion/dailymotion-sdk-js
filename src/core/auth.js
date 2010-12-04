@@ -1,0 +1,252 @@
+/**
+ * Highly inspired from Facebook connect JS SDK available at https://github.com/facebook/connect-js
+ *
+ * Copyright Dailymotion S.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ *
+ * @provides dm.auth
+ * @requires dm.prelude
+ *           dm.qs
+ *           dm.event
+ *           dm.json
+ */
+
+/**
+ * Authentication, Authorization & Sessions.
+ *
+ * @class dm
+ * @static
+ * @access private
+ */
+DM.provide('',
+{
+    getLoginStatus: function(cb)
+    {
+        cb({status: DM._userStatus, session: DM._session});
+    },
+
+    getSession: function()
+    {
+        return DM._session;
+    },
+
+    login: function(cb, opts)
+    {
+        // we try to place it at the center of the current window
+        var screenX = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft,
+            screenY = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop,
+            outerWidth = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.documentElement.clientWidth,
+            outerHeight = typeof window.outerHeight != 'undefined' ? window.outerHeight : (document.documentElement.clientHeight - 22), // 22 = IE toolbar height
+            width = 300,
+            height = 200,
+            left = parseInt(screenX + ((outerWidth - width) / 2), 10),
+            top = parseInt(screenY + ((outerHeight - height) / 2.5), 10),
+            features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top;
+
+        opts = DM.copy
+        ({
+            client_id: DM._apiKey,
+            response_type: 'token',
+            scope: '',
+            redirect_uri: document.location.href,
+            state: DM.guid(),
+        }, opts || {});
+
+        var win = window.open(DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
+
+        if (cb)
+        {
+            DM.Auth._active[opts.state] = {cb: cb, win: win};
+            DM.Auth._popupMonitor();
+        }
+    },
+});
+
+/**
+ * Internal Authentication implementation.
+ *
+ * @class DM.Auth
+ * @static
+ * @access private
+ */
+DM.provide('Auth',
+{
+    authorizeUrl: 'https://api.dailymotion.com/oauth/authorize',
+    _active: {},
+
+
+    /**
+     * Check if session info are present in the URL fragment
+     */
+    readSession: function()
+    {
+        var fragment = window.location.hash.substr(1);
+        if (window.opener && window.opener.DM.Auth.setSession && window.name == 'dmauth'
+            && (fragment.indexOf('access_token=') >= 0 || fragment.indexOf('error=') >= 0))
+        {
+            // display none helps prevent loading of some stuff
+            document.documentElement.style.display = 'none';
+
+            var oauthResponse = DM.QS.decode(fragment);
+            window.opener.DM.Auth.recvSession(oauthResponse);
+            window.close();
+        }
+    },
+
+    recvSession: function(session)
+    {
+        var perms = null;
+        if ('access_token' in session)
+        {
+            DM.Auth.setSession(session, 'connected');
+            perms = session.scope;
+        }
+        else
+        {
+            DM.Auth.setSession(false, 'notConnected');
+        }
+        if ('state' in session && session.state in DM.Auth._active)
+        {
+            var cb = DM.Auth._active[session.state].cb;
+            delete DM.Auth._active[session.state];
+            cb({status: DM._userStatus, session: DM._session, 'perms': perms});
+        }
+    },
+
+    /**
+     * Set a new session value. Invokes all the registered subscribers
+     * if needed.
+     *
+     * @access private
+     * @param session {Object}  the new Session
+     * @param status  {String}  the new status
+     * @return        {Object}  the "response" object
+     */
+    setSession: function(session, status)
+    {
+        // detect special changes before changing the internal session
+        var login = !DM._session && session,
+            logout = DM._session && !session,
+            both = false, // DM._session && session && DM._session.uid != session.uid,
+            sessionChange = login || logout || (DM._session && session && DM._session.access_token != session.access_token),
+            statusChange = status != DM._userStatus;
+
+        var response =
+        {
+            session: session,
+            status: status
+        };
+
+        DM._session = session;
+        DM._userStatus = status;
+
+        // If cookie support is enabled, set the cookie. Cookie support does not
+        // rely on events, because we want the cookie to be set _before_ any of the
+        // event handlers are fired. Note, this is a _weak_ dependency on Cookie.
+        if (sessionChange && DM.Cookie && DM.Cookie.getEnabled())
+        {
+            DM.Cookie.set(session);
+        }
+
+        // events
+        if (statusChange)
+        {
+            /**
+             * Fired when the status changes.
+             *
+             * @event auth.statusChange
+             */
+            DM.Event.fire('auth.statusChange', response);
+        }
+        if (logout || both)
+        {
+            /**
+             * Fired when a logout action is performed.
+             *
+             * @event auth.logout
+             */
+            DM.Event.fire('auth.logout', response);
+        }
+        if (login || both)
+        {
+            /**
+             * Fired when a login action is performed.
+             *
+             * @event auth.login
+             */
+            DM.Event.fire('auth.login', response);
+        }
+        if (sessionChange)
+        {
+            /**
+             * Fired when the session changes. This includes a session being
+             * refreshed, or a login or logout action.
+             *
+             * @event auth.sessionChange
+             */
+            DM.Event.fire('auth.sessionChange', response);
+        }
+
+        return response;
+    },
+
+    /**
+     * Start and manage the window monitor interval. This allows us to invoke
+     * the default callback for a window when the user closes the window
+     * directly.
+     *
+     * @access private
+     */
+    _popupMonitor: function()
+    {
+        // check all open windows
+        var found = false;
+        for (var id in DM.Auth._active)
+        {
+            var win = DM.Auth._active[id].win;
+
+            try
+            {
+                // found a closed window
+                if (win.closed)
+                {
+                    DM.Auth.recvSession({error:'access_denied', error_description:'Client closed the window', state:id});
+                }
+                else
+                {
+                    found = true;
+                }
+            }
+            catch (e)
+            {
+            }
+        }
+
+        if (found && !DM.Auth._popupInterval)
+        {
+            // start the monitor if needed and it's not already running
+            DM.Auth._popupInterval = window.setInterval(DM.Auth._popupMonitor, 100);
+        }
+        else if (!found && DM.Auth._popupInterval)
+        {
+            // shutdown if we have nothing to monitor but it's running
+            window.clearInterval(DM.Auth._popupInterval);
+            DM.Auth._popupInterval = null;
+        }
+    }
+});
+
+DM.Auth.readSession();
