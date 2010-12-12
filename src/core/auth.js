@@ -60,6 +60,7 @@ DM.provide('',
         ({
             client_id: DM._apiKey,
             response_type: 'token',
+            display: 'popup',
             scope: '',
             redirect_uri: document.location.href,
             state: DM.guid(),
