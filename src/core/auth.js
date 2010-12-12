@@ -91,8 +91,10 @@ DM.provide('Auth',
 
     /**
      * Check if session info are present in the URL fragment
+     *
+     * @access private
      */
-    readSession: function()
+    readFragment: function()
     {
         var fragment = window.location.hash.substr(1);
         if (window.opener && window.opener.DM.Auth.setSession && window.name == 'dmauth'
@@ -107,6 +109,12 @@ DM.provide('Auth',
         }
     },
 
+    /**
+     * Recieve the authorization server response
+     *
+     * @access private
+     * @param session {Object}  the new Session
+     */
     recvSession: function(session)
     {
         var perms = null;
@@ -250,4 +258,4 @@ DM.provide('Auth',
     }
 });
 
-DM.Auth.readSession();
+DM.Auth.readFragment();
