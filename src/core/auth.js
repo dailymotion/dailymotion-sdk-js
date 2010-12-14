@@ -50,8 +50,8 @@ DM.provide('',
             screenY = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop,
             outerWidth = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.documentElement.clientWidth,
             outerHeight = typeof window.outerHeight != 'undefined' ? window.outerHeight : (document.documentElement.clientHeight - 22), // 22 = IE toolbar height
-            width = 300,
-            height = 200,
+            width = 600,
+            height = 420,
             left = parseInt(screenX + ((outerWidth - width) / 2), 10),
             top = parseInt(screenY + ((outerHeight - height) / 2.5), 10),
             features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top;
