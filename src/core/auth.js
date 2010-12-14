@@ -22,6 +22,7 @@
  *           dm.qs
  *           dm.event
  *           dm.json
+ *           dm.api
  */
 
 /**
@@ -74,6 +75,11 @@ DM.provide('',
             DM.Auth._popupMonitor();
         }
     },
+
+    logout: function(cb)
+    {
+        DM.api('/logout', cb);
+    }
 });
 
 /**

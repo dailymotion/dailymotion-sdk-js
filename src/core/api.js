@@ -125,6 +125,17 @@ DM.provide('ApiServer',
             return;
         }
 
+        // This is an optional dependency on DM.Auth, /logout affects the session
+        if (DM.Auth && path === 'logout')
+        {
+            var old_cb = cb;
+            cb = function(response)
+            {
+                DM.Auth.setSession(null, 'notConnected');
+                old_cb && old_cb(response);
+            };
+        }
+
         DM.ApiServer.oauthRequest(path, method, params, cb);
     },
 
