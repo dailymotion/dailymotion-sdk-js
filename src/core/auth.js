@@ -153,6 +153,14 @@ DM.provide('Auth',
             sessionChange = login || logout || (DM._session && session && DM._session.access_token != session.access_token),
             statusChange = status != DM._userStatus;
 
+        if (session && 'expires_in' in session)
+        {
+            // CAVEAT: the expires here will actually only be valid on the client as end-user machines
+            //         clock is rarely synced
+            session.expires = Math.round(new Date().getTime() / 1000) + session.expires_in;
+            delete session.expires_in;
+        }
+
         var response =
         {
             session: session,
