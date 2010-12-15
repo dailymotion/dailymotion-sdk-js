@@ -48,7 +48,7 @@ test('cancel login by closing the popup window', function()
             start();
         });
     };
-    action.innerHTML = 'Close the Login Popup Window using the OS Chrome';
+    action.innerHTML = 'Close the Login Popup Window using the window close button';
     action.className = 'login-close-window';
 });
 
@@ -68,8 +68,8 @@ test('login with the "Accept" button', function()
             start();
         });
     };
-    action.innerHTML = 'Login with the "Connect" button';
-    action.className = 'login-with-connect-button';
+    action.innerHTML = 'Login with the "Accept" button';
+    action.className = 'login-with-accept-button';
 });
 
 test('status should now return a session', function()
