@@ -15,45 +15,53 @@ test('verify subscriber gets notified on various events', function()
     };
     DM.Event.subscribe('auth.sessionChange', cb);
 
+    action.innerHTML = ('Accept the connection');
     action.onclick = function()
     {
-        DM.log('1');
         // 1
         DM.login(function()
         {
-            DM.log('2');
             // 2
             DM.api('logout', function(response)
             {
-                DM.log('3');
                 // 3
-                DM.login(function()
+                action.innerHTML = ('Accept the connection again');
+                action.onclick = function()
                 {
-                    DM.log('4');
-                    // 4
-                    DM.logout(function()
+                    DM.login(function()
                     {
-                        // 5
-                        DM.login(function()
+                        // 4
+                        DM.logout(function()
                         {
-                            // should not trigger subscriber
-                            DM.login(function()
+                            // 5
+                            action.innerHTML = ('Accept the connection one more time');
+                            action.onclick = function()
                             {
-                                // 6
-                                ok(expected == 0, 'got all expected callbacks');
+                                DM.login(function()
+                                {
+                                    action.innerHTML = ('Accept the connection one last time');
+                                    action.onclick = function()
+                                    {
+                                        // should not trigger subscriber
+                                        DM.login(function()
+                                        {
+                                            // 6
+                                            ok(expected == 0, 'got all expected callbacks');
 
-                                // unsubscribe once we're done
-                                DM.Event.unsubscribe('auth.sessionChange', cb);
-                                action.innerHTML = '';
-                                start();
-                            }, {'perms': 'write'});
-                        }, {'perms': 'read'});
+                                            // unsubscribe once we're done
+                                            DM.Event.unsubscribe('auth.sessionChange', cb);
+                                            action.innerHTML = '';
+                                            start();
+                                        }, {'perms': 'write'});
+                                    };
+                                }, {'perms': 'read'});
+                            };
+                        });
                     });
-                });
+                };
             });
         });
     };
-    action.innerHTML = ('"Connect" thrice, "Allow", finally "Dont Allow"');
     action.className = 'session-subscribers';
 
     expect(expected + 1);
