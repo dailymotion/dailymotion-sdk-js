@@ -36,7 +36,10 @@ DM.provide('',
 {
     getLoginStatus: function(cb)
     {
-        cb({status: DM._userStatus, session: DM._session});
+        if (cb)
+        {
+            cb({status: DM._userStatus, session: DM._session});
+        }
     },
 
     getSession: function()
@@ -131,7 +134,7 @@ DM.provide('Auth',
         }
         else
         {
-            DM.Auth.setSession(false, 'notConnected');
+            DM.Auth.setSession(null, 'notConnected');
         }
         if ('state' in session && session.state in DM.Auth._active)
         {
