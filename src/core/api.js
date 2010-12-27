@@ -151,9 +151,13 @@ DM.provide('ApiServer',
     oauthRequest: function(path, method, params, cb)
     {
         // add oauth token if we have one
-        if (DM._session && DM._session.access_token && !params.access_token)
+        if (DM.getSession)
         {
-            params.access_token = DM._session.access_token;
+            var session = DM.getSession();
+            if (session && session.access_token && !params.access_token)
+            {
+                params.access_token = session.access_token;
+            }
         }
 
         DM.ApiServer.jsonp(path, method, DM.JSON.flatten(params), cb);
