@@ -76,7 +76,7 @@ DM.provide('QS',
             pair = parts[i].split('=', 2);
             if (pair && pair[0])
             {
-                params[decode(pair[0])] = decode(pair[1]);
+                params[decode(pair[0])] = decode(pair[1].replace(/\+/g, '%20'));
             }
         }
 

@@ -114,7 +114,6 @@ DM.provide('Auth',
 
             var oauthResponse = DM.QS.decode(fragment);
             window.opener.DM.Auth.recvSession(oauthResponse);
-            window.close();
         }
     },
 
@@ -126,22 +125,24 @@ DM.provide('Auth',
      */
     recvSession: function(session)
     {
-        var perms = null;
-        if ('access_token' in session)
+        if ('error' in session)
         {
-            DM.Auth.setSession(session, 'connected');
-            perms = session.scope;
+            DM.error('Received auth error `' + session.error + '\': ' + session.error_description);
         }
-        else
+
+        if (!('state' in session))
         {
-            DM.Auth.setSession(null, 'notConnected');
+            DM.error("Received a session with not `state' field");
+            return;
         }
-        if ('state' in session && session.state in DM.Auth._active)
+
+        if (!(session.state in DM.Auth._active))
         {
-            var cb = DM.Auth._active[session.state].cb;
-            delete DM.Auth._active[session.state];
-            cb({status: DM._userStatus, session: DM._session, 'perms': perms});
+            DM.error('Received a session from an inactive window');
+            return;
         }
+
+        DM.Auth._active[session.state].session = session;
     },
 
     /**
@@ -239,34 +240,68 @@ DM.provide('Auth',
     _popupMonitor: function()
     {
         // check all open windows
-        var found = false;
         for (var id in DM.Auth._active)
         {
-            var win = DM.Auth._active[id].win;
-
-            try
+            if ('win' in DM.Auth._active[id])
             {
-                // found a closed window
-                if (win.closed)
+                try
                 {
-                    DM.Auth.recvSession({error:'access_denied', error_description:'Client closed the window', state:id});
+                    // found a closed window
+                    if (DM.Auth._active[id].win.closed)
+                    {
+                        delete DM.Auth._active[id].win;
+                        DM.Auth.recvSession({error:'access_denied', error_description:'Client closed the window', state:id});
+                    }
+                }
+                catch (e)
+                {
+                }
+            }
+
+            if ('session' in DM.Auth._active[id])
+            {
+                var callInfo = DM.Auth._active[id];
+                delete DM.Auth._active[id];
+
+                var session = callInfo.session;
+                if ('access_token' in session)
+                {
+                    DM.Auth.setSession(session, 'connected');
                 }
                 else
                 {
-                    found = true;
+                    DM.Auth.setSession(null, 'notConnected');
                 }
-            }
-            catch (e)
-            {
+
+                if ('win' in callInfo)
+                {
+                    callInfo.win.close();
+                }
+
+                if ('cb' in callInfo)
+                {
+                    var perms = null;
+                    if (DM._session && 'scope' in DM._session)
+                    {
+                        perms = DM._session.scope;
+                    }
+                    callInfo.cb({status: DM._userStatus, session: DM._session, 'perms': perms});
+                }
             }
         }
 
-        if (found && !DM.Auth._popupInterval)
+        var hasActive = false;
+        for (var id in DM.Auth._active)
+        {
+            hasActive = true;
+            break;
+        }
+        if (hasActive && !DM.Auth._popupInterval)
         {
             // start the monitor if needed and it's not already running
             DM.Auth._popupInterval = window.setInterval(DM.Auth._popupMonitor, 100);
         }
-        else if (!found && DM.Auth._popupInterval)
+        else if (!hasActive && DM.Auth._popupInterval)
         {
             // shutdown if we have nothing to monitor but it's running
             window.clearInterval(DM.Auth._popupInterval);

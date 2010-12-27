@@ -183,7 +183,29 @@ if (!window.DM)
             // fire an event if the event system is available
             if (DM.Event)
             {
-              DM.Event.fire('dm.log', args);
+                DM.Event.fire('dm.log', args);
+            }
+        },
+
+        /**
+         * Logs an error message for the developer.
+         *
+         * @access private
+         * @param args {Object} the thing to log
+         */
+        error: function(args)
+        {
+//#JSCOVERAGE_IF 0
+            if (window.console)
+            {
+                window.console.error(args);
+            }
+//#JSCOVERAGE_ENDIF
+
+            // fire an event if the event system is available
+            if (DM.Event)
+            {
+                DM.Event.fire('dm.error', args);
             }
         },
 
