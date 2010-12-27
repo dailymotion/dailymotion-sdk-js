@@ -179,6 +179,10 @@ $('ul').delegate('a', 'click', function(e)
     route($(this).attr('href'), $(this).tmplItem().data);
 });
 
+if (document.location.hash)
+{
+    route(document.location.hash);
+}
 
 $('div').live('pagebeforehide',function(event, ui)
 {
@@ -190,12 +194,9 @@ DM.init({apiKey: '16bb2ca3b5735b541a91', cookie: true});
 DM.Event.subscribe('auth.sessionChange', function() {showVideoList();}); // reload
 $(function()
 {
-    showVideoList($('#nav a').first().attr('endpoint'));
-    $('#nav').delegate('a', 'click', function()
-    {
-        showVideoList($(this).attr('endpoint'), $(this).attr('requires-auth') == 'true');
-    });
+    $('#load-more').hide();
     $('#load-more').click(loadMoreVideos);
+
     $('#search form').submit(function(e)
     {
         showVideoList('/videos?search=' + $('input', this).val());
@@ -208,6 +209,15 @@ $(function()
         $('#nav').toggle();
         $('#search:visible input').focus()
     });
+
+    $('#nav').delegate('a', 'click', function()
+    {
+        showVideoList($(this).attr('endpoint'), $(this).attr('requires-auth') == 'true');
+    });
+    if (!document.location.hash)
+    {
+        showVideoList($('#nav a').first().attr('endpoint'));
+    }
 });
 </script>
 </body>
