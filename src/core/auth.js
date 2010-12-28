@@ -44,7 +44,7 @@ DM.provide('',
 
     getSession: function()
     {
-        if ('expires' in DM._session && new Date().getTime() > DM._session.expires * 1000)
+        if (DM._session && 'expires' in DM._session && new Date().getTime() > DM._session.expires * 1000)
         {
             DM.Auth.setSession(null, 'notConnected');
         }
