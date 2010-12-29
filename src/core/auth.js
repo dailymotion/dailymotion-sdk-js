@@ -110,7 +110,7 @@ DM.provide('Auth',
      */
     readFragment: function()
     {
-        var fragment = window.location.hash.substr(1);
+        var fragment = window.location.hash.substr(window.location.hash.lastIndexOf('#') + 1);
         if (window.opener && window.opener.DM.Auth.setSession && window.name == 'dmauth'
             && (fragment.indexOf('access_token=') >= 0 || fragment.indexOf('error=') >= 0))
         {
