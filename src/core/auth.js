@@ -65,15 +65,15 @@ DM.provide('',
             top = parseInt(screenY + ((outerHeight - height) / 2.5), 10),
             features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top;
 
-        opts = DM.copy
-        ({
+        opts = DM.copy(opts || {},
+        {
             client_id: DM._apiKey,
             response_type: 'token',
             display: 'popup',
             scope: '',
             redirect_uri: document.location.href,
             state: DM.guid(),
-        }, opts || {});
+        });
 
         var win = window.open(DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
 
@@ -285,12 +285,7 @@ DM.provide('Auth',
 
                 if ('cb' in callInfo)
                 {
-                    var perms = null;
-                    if (DM._session && 'scope' in DM._session)
-                    {
-                        perms = DM._session.scope;
-                    }
-                    callInfo.cb({status: DM._userStatus, session: DM._session, 'perms': perms});
+                    callInfo.cb({status: DM._userStatus, session: DM._session});
                 }
             }
         }

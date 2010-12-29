@@ -52,9 +52,9 @@ test('verify subscriber gets notified on various events', function()
                                             DM.Event.unsubscribe('auth.sessionChange', cb);
                                             action.innerHTML = '';
                                             start();
-                                        }, {'perms': 'write'});
+                                        }, {scope: 'write'});
                                     };
-                                }, {'perms': 'read'});
+                                }, {scope: 'read'});
                             };
                         });
                     });
