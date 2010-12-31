@@ -61,7 +61,7 @@ DM.provide('',
 
             // if an explicit session was not given, try to _read_ an existing cookie.
             // we dont enable writing automatically, but we do read automatically.
-            options.session = options.session || DM.Cookie.load();
+            options.session = options.session || DM.Auth._receivedSession || DM.Cookie.load();
 
             // set the session
             DM.Auth.setSession(options.session, options.session ? 'connected' : 'unknown');

@@ -72,7 +72,7 @@ DM.provide('',
             display: 'popup',
             scope: '',
             redirect_uri: document.location.href,
-            state: DM.guid(),
+            state: 'dmauth_' + DM.guid(),
         });
 
         var win = window.open(DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
@@ -101,26 +101,39 @@ DM.provide('Auth',
 {
     authorizeUrl: 'https://api.dailymotion.com/oauth/authorize',
     _active: {},
-
+    _receivedSession: null,
 
     /**
      * Check if session info are present in the URL fragment
      *
      * @access private
      */
-    readFragment: function()
-    {
-        var fragment = window.location.hash.substr(window.location.hash.lastIndexOf('#') + 1);
-        if (window.opener && window.opener.DM.Auth.setSession && window.name == 'dmauth'
-            && (fragment.indexOf('access_token=') >= 0 || fragment.indexOf('error=') >= 0))
-        {
-            // display none helps prevent loading of some stuff
-            document.documentElement.style.display = 'none';
+     readFragment: function()
+     {
+         var fragment = window.location.hash.substr(window.location.hash.lastIndexOf('#') + 1);
+         if (fragment.indexOf('access_token=') >= 0 || fragment.indexOf('error=') >= 0)
+         {
+             var session = DM.QS.decode(fragment);
 
-            var oauthResponse = DM.QS.decode(fragment);
-            window.opener.DM.Auth.recvSession(oauthResponse);
-        }
-    },
+             if (window.opener && window.opener.DM.Auth.setSession && window.name == 'dmauth' && window.opener.name != 'dmauth')
+             {
+                 // Display none helps prevent loading of some stuff
+                 document.documentElement.style.display = 'none';
+
+                 window.opener.DM.Auth.recvSession(session);
+             }
+             else if (session && ('state' in session) && session.state.indexOf('dmauth_') == 0) // Ensure it's our session
+             {
+                 // The session have been received as fragment, but we can't find a valid opener.
+                 // This happen either when the user is redirected to the authorization page or when the agent
+                 // doesn't fully support window.open, and replace the current window by the opened one
+                 // (i.e.: iPhone fullscreen webapp mode)
+                 DM.Auth._receivedSession = session;
+                 // Remove the session from the fragment
+                 window.location.hash = window.location.hash.substr(0, window.location.hash.lastIndexOf('#'));
+             }
+         }
+     },
 
     /**
      * Recieve the authorization server response
@@ -130,6 +143,11 @@ DM.provide('Auth',
      */
     recvSession: function(session)
     {
+        if (!session)
+        {
+            DM.error('Received invalid session');
+        }
+
         if ('error' in session)
         {
             DM.error('Received auth error `' + session.error + '\': ' + session.error_description);
