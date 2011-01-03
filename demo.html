@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Dailymotion</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" type="image/png" href="http://iphone.dailymotion.com/partners/iphone/images/apple-touch-icon.png" />
+
 <script src="src/third-party/json2.js"></script>
 
 <script src="src/core/prelude.js"></script>
@@ -17,19 +21,65 @@
 
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js"></script>
 <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+<script>
+$(document).bind('mobileinit', function()
+{
+    $.mobile.defaultTransition = "none";
+});
+</script>
 <script src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
 
 <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css">
+
+<style>
+.ui-content-nomargin
+{
+    padding: 0px;
+}
+
+.ui-content-nomargin .ui-listview
+{
+    margin: 0px;
+}
+
+ul.listview-noarrow .ui-li .ui-btn-inner
+{
+    padding-right: 15px;
+}
+
+ul.listview-noarrow .ui-icon-arrow-r
+{
+    display: none;
+}
+
+.video-player
+{
+    background-color: black;
+    text-align: center;
+}
+</style>
 </head>
 <body>
 <script id="video-item" type="text/x-jquery-tmpl">
-<li><img src="${thumbnail_small_url}"><a href="#video/${id}">${title}</a>
+<li><img src="${thumbnail_small_url}"><a href="#" video="${id}">${title}</a>
 </script>
 
 <script id="video-page" type="text/x-jquery-tmpl">
 <div data-role="header"><h1>${title}</h1></div>
-<div data-role="content">
-    {{html embed_html}}
+<div data-role="content" class="ui-content-nomargin">
+    <div class="video-player">{{html embed_html}}</div>
+    <div class="video-tools">
+        <a href="#" action="like" data-role="button" data-inline="true" data-theme="a">Like</a>
+        <a href="#" action="share" data-role="button" data-inline="true" data-theme="a">Share</a>
+    </div>
+    <div data-role="navbar">
+        <ul>
+            <li><a href="#" endpoint="/video/${id}/related">Related Videos</a>
+            <li><a href="#">Comments</a>
+        </ul>
+    </div>
+    <ul data-role="listview" data-theme="d" class="listview-noarrow" ></ul>
+    <a href="#" class="load-more" data-role="button">Load More</a>
 </div>
 </script>
 
@@ -53,9 +103,9 @@
     </div>
     <div data-role="content">
         <div id="search"><form class="ui-listview-filter ui-bar-c" role="search"><input data-type="search" placeholder="Search"><form></div>
-        <ul data-role="listview" id="video-list"></ul>
+        <ul data-role="listview" data-theme="d" class="listview-noarrow"></ul>
         <br>
-        <a href="#" id="load-more" data-role="button">Load More</a>
+        <a href="#" class="load-more" data-role="button">Load More</a>
     </div>
 </div>
 
@@ -66,34 +116,31 @@ var currentVideoListPage = 0;
 
 function showVideo(videoId, data)
 {
-    if ($('#video/' + videoId).length > 0)
-    {
-        return;
-    }
+    if ($('#video\\/' + videoId).length > 0) return;
 
     var page = $('<div data-role="page">').attr('id', 'video/' + videoId).appendTo($('body'));
+
     if (data)
     {
         $('#video-page').tmpl(data).appendTo(page);
+        $('iframe', page).load(function() {$(window).trigger('resize');});
+        setTimeout(function(){$(window).trigger('resize');}, 1000);
     }
     else
     {
         $('#video-page-loading').tmpl().appendTo(page);
         DM.api('/video/' + videoId, {fields:videoFields}, function(videoInfo)
         {
-            var content = $('#video-page').tmpl(videoInfo);
-            page.html(content);
-            content.page();
+            $('#video-page').tmpl(videoInfo).appendTo(page.empty()).page();
+            $(window).trigger('resize');
+            initPage(page);
         });
     }
 }
 
 function loadMoreVideos()
 {
-    if ($.type(currentVideoListEndpoint) != 'string')
-    {
-        return;
-    }
+    if ($.type(currentVideoListEndpoint) != 'string') return;
     $.mobile.pageLoading();
     var sep = (currentVideoListEndpoint.indexOf('?') > -1 ? '&' : '?');
     DM.api(currentVideoListEndpoint + sep + 'limit=20&page=' + ++currentVideoListPage, {fields:videoFields}, function(videos)
@@ -101,17 +148,17 @@ function loadMoreVideos()
         $.mobile.pageLoading(true);
         if ('list' in videos)
         {
-            var videoList = $('#video-list');
+            var videoList = $('ul[data-role=listview]', $.mobile.activePage);
             $('#video-item').tmpl(videos.list).appendTo(videoList);
             videoList.listview('refresh');
-            $('ul div.ui-btn-inner').css('min-height', '38px');
+            $('ul div.ui-btn-inner').css('min-height', '39px');
             if (videos.has_more)
             {
-                $('#load-more').show();
+                $('.load-more', $.mobile.activePage).show();
             }
             else
             {
-                $('#load-more').hide();
+                $('.load-more', $.mobile.activePage).hide();
             }
         }
     });
@@ -131,7 +178,7 @@ function showVideoList(endpoint, requiresAuth)
     currentVideoListEndpoint = endpoint;
     currentVideoListPage = 0;
 
-    $('#nav a').each(function(index, item)
+    $('div[data-role=navbar] a[endpoint]', $.mobile.activePage).each(function(index, item)
     {
         if ($(item).attr('endpoint').replace(/.*#/, '') == endpoint)
         {
@@ -142,23 +189,13 @@ function showVideoList(endpoint, requiresAuth)
             $(item).removeClass('ui-btn-active');
         }
     });
-    $('#video-list').empty();
-    $('#load-more').hide();
+    $('ul[data-role=listview]', $.mobile.activePage).empty();
+    $('.load-more', $.mobile.activePage).hide();
     $.mobile.pageLoading();
 
-    if (requiresAuth && !DM.getSession())
+    if (requiresAuth)
     {
-        DM.login(function(response)
-        {
-            if (response.session)
-            {
-                loadMoreVideos();
-            }
-            else
-            {
-                $.mobile.pageLoading(true);
-            }
-        });
+        authen.call(this, loadMoreVideos, function() {$.mobile.pageLoading(true);});
     }
     else
     {
@@ -168,35 +205,136 @@ function showVideoList(endpoint, requiresAuth)
 
 function route(href, data)
 {
-    if (href.indexOf('#video/') == 0)
+    if (href.indexOf('video/') == 0)
     {
-        showVideo(href.replace(/^#video\//, ''), data);
+        showVideo(href.replace(/^video\//, ''), data);
     }
+
+    document.location.hash = '#' + href;
 }
 
-$('ul').delegate('a', 'click', function(e)
+function initPage(page)
 {
-    route($(this).attr('href'), $(this).tmplItem().data);
+    // Select the first tab if non is selected on the main list
+    if ($('div[data-role=navbar] .ui-btn-active', page).length == 0)
+    {
+        setTimeout(function()
+        {
+            $('div[data-role=navbar] a[endpoint]', page).first().trigger('click');
+        }, 100);
+    }
+
+    // Default state
+    $('.load-more', page).hide();
+}
+
+$('a[video]').live('click', function(e)
+{
+    route('video/' + $(this).attr('video'), $(this).tmplItem().data);
 });
 
 if (document.location.hash)
 {
-    route(document.location.hash);
+    route(document.location.hash.substr(1));
 }
 
-$('div').live('pagebeforehide',function(event, ui)
+$('div').live('pagebeforehide', function(event, ui)
 {
     // Prevent from ghost flash player bug
     $('iframe', $.mobile.activePage).remove();
+});
+
+$('.load-more').live('click', loadMoreVideos);
+
+$('a[endpoint]').live('click', function()
+{
+    showVideoList($(this).attr('endpoint'), $(this).attr('requires-auth') == 'true');
+});
+
+$('div').live('pagehide', function(event, ui)
+{
+    initPage(ui.nextPage);
+});
+
+$('div').live('pageshow', function(event, ui)
+{
+    // Trigger resize to help player page to position elements
+    $(window).trigger('resize');
+});
+
+function authen(action, failAction)
+{
+    if (DM.getSession())
+    {
+        action.call(this);
+    }
+    else
+    {
+        var $this = this;
+        DM.login(function(response)
+        {
+            if (response.session)
+            {
+                action.call($this);
+            }
+            else
+            {
+                DM.log('Authentication failed');
+                if (failAction)
+                {
+                    failAction.call($this);
+                }
+            }
+        }, {scope: 'read write delete'});
+    }
+}
+
+$('a[action=like]').live('click', function()
+{
+    authen.call(this, function()
+    {
+        var $this = $(this),
+            id = $this.tmplItem().data.id,
+            method = !!$this.data('liked') ? 'delete' : 'post';
+
+        DM.api('/video/' + id + '/like', method, function(response)
+        {
+            if (response && !('error' in response))
+            {
+                $this.data('liked', !$this.data('liked'));
+                if ($this.data('liked'))
+                {
+                    $this.attr('data-theme', 'b');
+                    $this.addClass('ui-btn-hover-b');
+                    $this.removeClass('ui-btn-down-a ui-btn-up-a ui-btn-hover-a');
+                }
+                else
+                {
+                    $this.attr('data-theme', 'a');
+                    $this.addClass('ui-btn-hover-a');
+                    $this.removeClass('ui-btn-down-b ui-btn-up-b ui-btn-hover-b');
+                }
+            }
+        });
+    });
+});
+
+$(window).resize(function()
+{
+    var playerWrapper = $('.video-player', $.mobile.activePage),
+        playerFrame = $('.video-player iframe', $.mobile.activePage),
+        playerRatio = playerFrame.width() / playerFrame.height(),
+        height = Math.min(playerWrapper.width() / playerRatio, 400);
+
+    playerFrame.width(height * playerRatio);
+    playerFrame.height(height);
+    playerWrapper.height(height);
 });
 
 DM.init({apiKey: '16bb2ca3b5735b541a91', cookie: true});
 DM.Event.subscribe('auth.sessionChange', function() {showVideoList();}); // reload
 $(function()
 {
-    $('#load-more').hide();
-    $('#load-more').click(loadMoreVideos);
-
     $('#search form').submit(function(e)
     {
         showVideoList('/videos?search=' + $('input', this).val());
@@ -210,10 +348,6 @@ $(function()
         $('#search:visible input').focus()
     });
 
-    $('#nav').delegate('a', 'click', function()
-    {
-        showVideoList($(this).attr('endpoint'), $(this).attr('requires-auth') == 'true');
-    });
     if (!document.location.hash)
     {
         showVideoList($('#nav a').first().attr('endpoint'));
