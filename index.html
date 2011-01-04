@@ -324,6 +324,12 @@ else
     $('.load-more').buttonMarkup();
     initPage($.mobile.activePage);
 }
+
+if (navigator.userAgent.match(/MSIE/))
+{
+    alert("This webapp is not compatible with your browser");
+}
+
 </script>
 </body>
 </html>
