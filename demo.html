@@ -4,59 +4,18 @@
 <title>Dailymotion</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" type="image/png" href="http://iphone.dailymotion.com/partners/iphone/images/apple-touch-icon.png" />
-
-<script src="src/third-party/json2.js"></script>
-
-<script src="src/core/prelude.js"></script>
-<script src="src/core/json.js"></script>
-
-<script src="src/common/array.js"></script>
-
-<script src="src/core/cookie.js"></script>
-<script src="src/core/event.js"></script>
-<script src="src/core/init.js"></script>
-<script src="src/core/qs.js"></script>
-<script src="src/core/api.js"></script>
-<script src="src/core/auth.js"></script>
-
+<script src="http://api.dmcdn.net/all.js"></script>
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js"></script>
 <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
-<script>
-$(document).bind('mobileinit', function()
-{
-    $.mobile.defaultTransition = "none";
-});
-</script>
+<script>$(document).bind('mobileinit', function() {$.mobile.defaultTransition = "none";});</script>
 <script src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
-
 <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css">
-
 <style>
-.ui-content-nomargin
-{
-    padding: 0px;
-}
-
-.ui-content-nomargin .ui-listview
-{
-    margin: 0px;
-}
-
-ul.listview-noarrow .ui-li .ui-btn-inner
-{
-    padding-right: 15px;
-}
-
-ul.listview-noarrow .ui-icon-arrow-r
-{
-    display: none;
-}
-
-.video-player
-{
-    background-color: black;
-    text-align: center;
-}
+.ui-content-nomargin {padding: 0px}
+.ui-content-nomargin .ui-listview {margin: 0px}
+ul.listview-noarrow .ui-li .ui-btn-inner {padding-right: 15px}
+ul.listview-noarrow .ui-icon-arrow-r {display: none}
+.video-player {background-color: black; text-align: center}
 </style>
 </head>
 <body>
@@ -226,42 +185,10 @@ function initPage(page)
 
     // Default state
     $('.load-more', page).hide();
+    $('#search').hide();
 }
 
-$('a[video]').live('click', function(e)
-{
-    route('video/' + $(this).attr('video'), $(this).tmplItem().data);
-});
-
-if (document.location.hash)
-{
-    route(document.location.hash.substr(1));
-}
-
-$('div').live('pagebeforehide', function(event, ui)
-{
-    // Prevent from ghost flash player bug
-    $('iframe', $.mobile.activePage).remove();
-});
-
-$('.load-more').live('click', loadMoreVideos);
-
-$('a[endpoint]').live('click', function()
-{
-    showVideoList($(this).attr('endpoint'), $(this).attr('requires-auth') == 'true');
-});
-
-$('div').live('pagehide', function(event, ui)
-{
-    initPage(ui.nextPage);
-});
-
-$('div').live('pageshow', function(event, ui)
-{
-    // Trigger resize to help player page to position elements
-    $(window).trigger('resize');
-});
-
+// Execute a function with authentication
 function authen(action, failAction)
 {
     if (DM.getSession())
@@ -289,6 +216,22 @@ function authen(action, failAction)
     }
 }
 
+// Click on a video list row
+$('a[video]').live('click', function(e)
+{
+    route('video/' + $(this).attr('video'), $(this).tmplItem().data);
+});
+
+// Click on a video list's "load more" button
+$('.load-more').live('click', loadMoreVideos);
+
+// Click on a navigation tab
+$('a[endpoint]').live('click', function()
+{
+    showVideoList($(this).attr('endpoint'), $(this).attr('requires-auth') == 'true');
+});
+
+// Like button action
 $('a[action=like]').live('click', function()
 {
     authen.call(this, function()
@@ -319,6 +262,40 @@ $('a[action=like]').live('click', function()
     });
 });
 
+// Search handling
+$('#search form').submit(function(e)
+{
+    showVideoList('/videos?search=' + $('input', this).val());
+    e.preventDefault();
+});
+$('#search-button').live('click', function()
+{
+    $('#search').toggle();
+    $('#nav').toggle();
+    $('#search:visible input').focus()
+});
+
+//
+// Page handling
+//
+
+$('div').live('pagehide', function(event, ui)
+{
+    initPage(ui.nextPage);
+});
+
+$('div').live('pageshow', function(event, ui)
+{
+    // Trigger resize to help player page to position elements
+    $(window).trigger('resize');
+});
+
+$('div').live('pagebeforehide', function(event, ui)
+{
+    // Prevent from ghost flash player bug
+    $('iframe', $.mobile.activePage).remove();
+});
+
 $(window).resize(function()
 {
     var playerWrapper = $('.video-player', $.mobile.activePage),
@@ -331,28 +308,21 @@ $(window).resize(function()
     playerWrapper.height(height);
 });
 
+//
+// Init
+//
+
 DM.init({apiKey: '16bb2ca3b5735b541a91', cookie: true});
 DM.Event.subscribe('auth.sessionChange', function() {showVideoList();}); // reload
-$(function()
-{
-    $('#search form').submit(function(e)
-    {
-        showVideoList('/videos?search=' + $('input', this).val());
-        e.preventDefault();
-    });
-    $('#search').hide();
-    $('#search-button').click(function()
-    {
-        $('#search').toggle();
-        $('#nav').toggle();
-        $('#search:visible input').focus()
-    });
 
-    if (!document.location.hash)
-    {
-        showVideoList($('#nav a').first().attr('endpoint'));
-    }
-});
+if (document.location.hash)
+{
+    route(document.location.hash.substr(1));
+}
+else
+{
+    initPage($.mobile.activePage);
+}
 </script>
 </body>
 </html>
