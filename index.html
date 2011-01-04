@@ -1,80 +1,329 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-
-	<title>dailymotion/dailymotion-sdk-js @ GitHub</title>
-	
-	<style type="text/css">
-		body {
-  		margin-top: 1.0em;
-  		background-color: #1428ba;
-		  font-family: "Helvetica,Arial,FreeSans";
-  		color: #ffffff;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-		h1 { font-size: 3.8em; color: #ebd745; margin-bottom: 3px; }
-		h1 .small { font-size: 0.4em; }
-		h1 a { text-decoration: none }
-		h2 { font-size: 1.5em; color: #ebd745; }
-    h3 { text-align: center; color: #ebd745; }
-    a { color: #ebd745; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-		pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-	</style>
-	
+<title>Dailymotion</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" type="image/png" href="http://iphone.dailymotion.com/partners/iphone/images/apple-touch-icon.png" />
+<script src="http://api.dmcdn.net/all.js"></script>
+<script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js"></script>
+<script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+<script>$(document).bind('mobileinit', function() {$.mobile.defaultTransition = "none";});</script>
+<script src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css">
+<style>
+.ui-content-nomargin {padding: 0px}
+.ui-content-nomargin .ui-listview {margin: 0px}
+ul.listview-noarrow .ui-li .ui-btn-inner {padding-right: 15px}
+ul.listview-noarrow .ui-icon-arrow-r {display: none}
+.video-player {background-color: black; text-align: center}
+</style>
 </head>
-
 <body>
-  <a href="http://github.com/dailymotion/dailymotion-sdk-js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+<script id="video-item" type="text/x-jquery-tmpl">
+<li><img src="${thumbnail_small_url}"><a href="#" video="${id}">${title}</a>
+</script>
 
-  <div id="container">
-
-    <div class="download">
-      <a href="http://github.com/dailymotion/dailymotion-sdk-js/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/dailymotion/dailymotion-sdk-js/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
+<script id="video-page" type="text/x-jquery-tmpl">
+<div data-role="header"><h1>${title}</h1></div>
+<div data-role="content" class="ui-content-nomargin">
+    <div class="video-player">{{html embed_html}}</div>
+    <div class="video-tools">
+        <a href="#" action="like" data-role="button" data-inline="true" data-theme="a">Like</a>
+        <a href="#" action="share" data-role="button" data-inline="true" data-theme="a">Share</a>
     </div>
-
-    <h1><a href="http://github.com/dailymotion/dailymotion-sdk-js">dailymotion-sdk-js</a>
-      <span class="small">by <a href="http://github.com/dailymotion">dailymotion</a></span></h1>
-
-    <div class="description">
-      Dailymotion JavaScript client API
+    <div data-role="navbar">
+        <ul>
+            <li><a href="#" endpoint="/video/${id}/related">Related Videos</a>
+            <li><a href="#">Comments</a>
+        </ul>
     </div>
+    <ul data-role="listview" data-theme="d" class="listview-noarrow" ></ul>
+    <a href="#" class="load-more" data-role="button">Load More</a>
+</div>
+</script>
 
-    <h2>Authors</h2>
-<p>Olivier Poitrey (rs@dailymotion.com)<br/><br/>      </p>
-<h2>Contact</h2>
-<p>Dailymotion (github@dailymotion.com)<br/>      </p>
+<script id="video-page-loading" type="text/x-jquery-tmpl">
+<div data-role="header"><h1>Loading...</h1></div>
+<div data-role="content"></div>
+</script>
 
-
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/dailymotion/dailymotion-sdk-js/zipball/master">zip</a> or
-      <a href="http://github.com/dailymotion/dailymotion-sdk-js/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/dailymotion/dailymotion-sdk-js</pre>
-    </p>
-
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/dailymotion/dailymotion-sdk-js">dailymotion/dailymotion-sdk-js</a>
+<div data-role="page">
+    <div data-role="header">
+        <h1 id="main-title">Dailymotion</h1>
+        <a href="#" id="search-button" data=role="button" class="ui-btn-right">Search</a>
+        <div id="nav" data-role="navbar">
+            <ul>
+                <li><a href="#" endpoint="/videos?filters=featured&amp;localization=detect">Featured</a>
+                <li><a href="#" endpoint="/videos/favorites" requires-auth="true">Favorites</a>
+                <li><a href="#" endpoint="/videos/subscriptions" requires-auth="true">Subscriptions</a>
+                <li><a href="#" endpoint="/videos/uploaded" requires-auth="true">My Videos</a>
+            </ul>
+        </div>
     </div>
+    <div data-role="content">
+        <div id="search"><form class="ui-listview-filter ui-bar-c" role="search"><input data-type="search" placeholder="Search"><form></div>
+        <ul data-role="listview" data-theme="d" class="listview-noarrow"></ul>
+        <br>
+        <a href="#" class="load-more" data-role="button">Load More</a>
+    </div>
+</div>
 
-  </div>
+<script>
+var videoFields = 'id,thumbnail_small_url,title,url,embed_html';
+var currentVideoListEndpoint = null;
+var currentVideoListPage = 0;
 
-  
+function showVideo(videoId, data)
+{
+    if ($('#video\\/' + videoId).length > 0) return;
+
+    var page = $('<div data-role="page">').attr('id', 'video/' + videoId).appendTo($('body'));
+
+    if (data)
+    {
+        $('#video-page').tmpl(data).appendTo(page);
+        $('iframe', page).load(function() {$(window).trigger('resize');});
+        setTimeout(function(){$(window).trigger('resize');}, 1000);
+    }
+    else
+    {
+        $('#video-page-loading').tmpl().appendTo(page);
+        DM.api('/video/' + videoId, {fields:videoFields}, function(videoInfo)
+        {
+            $('#video-page').tmpl(videoInfo).appendTo(page.empty()).page();
+            $(window).trigger('resize');
+            initPage(page);
+        });
+    }
+}
+
+function loadMoreVideos()
+{
+    if ($.type(currentVideoListEndpoint) != 'string') return;
+    $.mobile.pageLoading();
+    var sep = (currentVideoListEndpoint.indexOf('?') > -1 ? '&' : '?');
+    DM.api(currentVideoListEndpoint + sep + 'limit=20&page=' + ++currentVideoListPage, {fields:videoFields}, function(videos)
+    {
+        $.mobile.pageLoading(true);
+        if ('list' in videos)
+        {
+            var videoList = $('ul[data-role=listview]', $.mobile.activePage);
+            $('#video-item').tmpl(videos.list).appendTo(videoList);
+            videoList.listview('refresh');
+            $('ul div.ui-btn-inner').css('min-height', '39px');
+            if (videos.has_more)
+            {
+                $('.load-more', $.mobile.activePage).show();
+            }
+            else
+            {
+                $('.load-more', $.mobile.activePage).hide();
+            }
+        }
+    });
+}
+
+function showVideoList(endpoint, requiresAuth)
+{
+    if (!endpoint)
+    {
+        // no arg == reload current
+        endpoint = currentVideoListEndpoint;
+        if (!endpoint)
+        {
+            return;
+        }
+    }
+    currentVideoListEndpoint = endpoint;
+    currentVideoListPage = 0;
+
+    $('div[data-role=navbar] a[endpoint]', $.mobile.activePage).each(function(index, item)
+    {
+        if ($(item).attr('endpoint').replace(/.*#/, '') == endpoint)
+        {
+            $(item).addClass('ui-btn-active');
+        }
+        else
+        {
+            $(item).removeClass('ui-btn-active');
+        }
+    });
+    $('ul[data-role=listview]', $.mobile.activePage).empty();
+    $('.load-more', $.mobile.activePage).hide();
+    $.mobile.pageLoading();
+
+    if (requiresAuth)
+    {
+        authen.call(this, loadMoreVideos, function() {$.mobile.pageLoading(true);});
+    }
+    else
+    {
+        loadMoreVideos();
+    }
+}
+
+function route(href, data)
+{
+    if (href.indexOf('video/') == 0)
+    {
+        showVideo(href.replace(/^video\//, ''), data);
+    }
+
+    document.location.hash = '#' + href;
+}
+
+function initPage(page)
+{
+    // Select the first tab if non is selected on the main list
+    if ($('div[data-role=navbar] .ui-btn-active', page).length == 0)
+    {
+        setTimeout(function()
+        {
+            $('div[data-role=navbar] a[endpoint]', page).first().trigger('click');
+        }, 100);
+    }
+
+    // Default state
+    $('.load-more', page).hide();
+    $('#search').hide();
+}
+
+// Execute a function with authentication
+function authen(action, failAction)
+{
+    if (DM.getSession())
+    {
+        action.call(this);
+    }
+    else
+    {
+        var $this = this;
+        DM.login(function(response)
+        {
+            if (response.session)
+            {
+                action.call($this);
+            }
+            else
+            {
+                DM.log('Authentication failed');
+                if (failAction)
+                {
+                    failAction.call($this);
+                }
+            }
+        }, {scope: 'read write delete'});
+    }
+}
+
+// Click on a video list row
+$('a[video]').live('click', function(e)
+{
+    route('video/' + $(this).attr('video'), $(this).tmplItem().data);
+});
+
+// Click on a video list's "load more" button
+$('.load-more').live('click', loadMoreVideos);
+
+// Click on a navigation tab
+$('a[endpoint]').live('click', function()
+{
+    showVideoList($(this).attr('endpoint'), $(this).attr('requires-auth') == 'true');
+});
+
+// Like button action
+$('a[action=like]').live('click', function()
+{
+    authen.call(this, function()
+    {
+        var $this = $(this),
+            id = $this.tmplItem().data.id,
+            method = !!$this.data('liked') ? 'delete' : 'post';
+
+        DM.api('/video/' + id + '/like', method, function(response)
+        {
+            if (response && !('error' in response))
+            {
+                $this.data('liked', !$this.data('liked'));
+                if ($this.data('liked'))
+                {
+                    $this.attr('data-theme', 'b');
+                    $this.addClass('ui-btn-hover-b');
+                    $this.removeClass('ui-btn-down-a ui-btn-up-a ui-btn-hover-a');
+                }
+                else
+                {
+                    $this.attr('data-theme', 'a');
+                    $this.addClass('ui-btn-hover-a');
+                    $this.removeClass('ui-btn-down-b ui-btn-up-b ui-btn-hover-b');
+                }
+            }
+        });
+    });
+});
+
+// Search handling
+$('#search form').submit(function(e)
+{
+    showVideoList('/videos?search=' + $('input', this).val());
+    e.preventDefault();
+});
+$('#search-button').live('click', function()
+{
+    $('#search').toggle();
+    $('#nav').toggle();
+    $('#search:visible input').focus()
+});
+
+//
+// Page handling
+//
+
+$('div').live('pagehide', function(event, ui)
+{
+    initPage(ui.nextPage);
+});
+
+$('div').live('pageshow', function(event, ui)
+{
+    // Trigger resize to help player page to position elements
+    $(window).trigger('resize');
+});
+
+$('div').live('pagebeforehide', function(event, ui)
+{
+    // Prevent from ghost flash player bug
+    $('iframe', $.mobile.activePage).remove();
+});
+
+$(window).resize(function()
+{
+    var playerWrapper = $('.video-player', $.mobile.activePage),
+        playerFrame = $('.video-player iframe', $.mobile.activePage),
+        playerRatio = playerFrame.width() / playerFrame.height(),
+        height = Math.min(playerWrapper.width() / playerRatio, 400);
+
+    playerFrame.width(height * playerRatio);
+    playerFrame.height(height);
+    playerWrapper.height(height);
+});
+
+//
+// Init
+//
+
+DM.init({apiKey: '4db5993782287f4b3fc7', cookie: true});
+DM.Event.subscribe('auth.sessionChange', function() {showVideoList();}); // reload
+
+if (document.location.hash)
+{
+    route(document.location.hash.substr(1));
+}
+else
+{
+    $('.load-more').buttonMarkup();
+    initPage($.mobile.activePage);
+}
+</script>
 </body>
 </html>
