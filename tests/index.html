@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mu Tests</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link type="text/css" rel="stylesheet" href="qunit.css">
+</head>
+<body>
+
+<h1 id="qunit-header">Dailymotion API Tests</h1>
+<h2 id="qunit-banner"></h2>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="main"></div>
+<script src="./qunit.js"></script>
+
+<button id="action"></button>
+<script>
+var action = document.getElementById('action');
+</script>
+<script src="http://api.dmcdn.net/all.js"></script>
+<script>
+(function()
+{
+    QUnit.testDone = function(name, failures, total)
+    {
+        window.scrollTo(0, 100000);
+    };
+    DM.init
+    ({
+        apiKey: '4db5993782287f4b3fc7',
+        cookie: false,
+        status: false
+    });
+})();
+</script>
+
+<script src="js/prelude.js"></script>
+<script src="js/qs.js"></script>
+<script src="js/json.js"></script>
+<script src="js/event.js"></script>
+<script src="js/cookie.js"></script>
+<!--<script src="js/api.js"></script>-->
+
+<!-- tests that require user interaction: -->
+<script src="js/auth.js"></script>
+<script src="js/auth_events.js"></script>
+<script src="js/cleanup.js"></script>
+</body>
+</html>
