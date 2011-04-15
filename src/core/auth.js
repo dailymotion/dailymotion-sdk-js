@@ -72,7 +72,7 @@ DM.provide('',
             display: 'popup',
             scope: '',
             redirect_uri: document.location.href,
-            state: 'dmauth_' + DM.guid(),
+            state: 'dmauth_' + DM.guid()
         });
 
         var win = window.open(DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
