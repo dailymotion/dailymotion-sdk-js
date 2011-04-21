@@ -110,7 +110,7 @@ DM.provide('Auth',
      */
      readFragment: function()
      {
-         var fragment = window.location.hash.substr(window.location.hash.lastIndexOf('#') + 1);
+         var h = window.location.hash.replace('%23', '#'), fragment = h.substr(h.lastIndexOf('#') + 1);
          if (fragment.indexOf('access_token=') >= 0 || fragment.indexOf('error=') >= 0)
          {
              var session = DM.QS.decode(fragment);
