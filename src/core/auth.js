@@ -94,6 +94,7 @@ DM.provide('',
     logout: function(cb)
     {
         DM.api('/logout', cb);
+        DM.Auth.setSession(null, 'notConnected');
     }
 });
 
