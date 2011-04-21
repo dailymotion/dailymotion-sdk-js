@@ -75,12 +75,19 @@ DM.provide('',
             state: 'dmauth_' + DM.guid()
         });
 
-        var win = window.open(DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
-
-        if (cb)
+        if (opts.display === 'popup')
         {
-            DM.Auth._active[opts.state] = {cb: cb, win: win};
-            DM.Auth._popupMonitor();
+            var win = window.open(DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
+
+            if (cb)
+            {
+                DM.Auth._active[opts.state] = {cb: cb, win: win};
+                DM.Auth._popupMonitor();
+            }
+        }
+        else
+        {
+            location.href = DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts);
         }
     },
 
@@ -108,32 +115,35 @@ DM.provide('Auth',
      *
      * @access private
      */
-     readFragment: function()
-     {
-         var h = window.location.hash.replace('%23', '#'), fragment = h.substr(h.lastIndexOf('#') + 1);
-         if (fragment.indexOf('access_token=') >= 0 || fragment.indexOf('error=') >= 0)
-         {
-             var session = DM.QS.decode(fragment);
+    readFragment: function()
+    {
+        var h = window.location.hash.replace('%23', '#'), fragment = h.substr(h.lastIndexOf('#') + 1);
+        if (fragment.indexOf('access_token=') >= 0 || fragment.indexOf('error=') >= 0)
+        {
+            var session = DM.QS.decode(fragment);
 
-             if (window.opener && window.opener.DM.Auth.setSession && window.name == 'dmauth' && window.opener.name != 'dmauth')
-             {
-                 // Display none helps prevent loading of some stuff
-                 document.documentElement.style.display = 'none';
+            if (window.opener && window.opener.DM.Auth.setSession && window.name == 'dmauth' && window.opener.name != 'dmauth')
+            {
+                // Display none helps prevent loading of some stuff
+                document.documentElement.style.display = 'none';
 
-                 window.opener.DM.Auth.recvSession(session);
-             }
-             else if (session && ('state' in session) && session.state.indexOf('dmauth_') == 0) // Ensure it's our session
-             {
-                 // The session have been received as fragment, but we can't find a valid opener.
-                 // This happen either when the user is redirected to the authorization page or when the agent
-                 // doesn't fully support window.open, and replace the current window by the opened one
-                 // (i.e.: iPhone fullscreen webapp mode)
-                 DM.Auth._receivedSession = session;
-                 // Remove the session from the fragment
-                 window.location.hash = h.substr(0, h.lastIndexOf('#'));
-             }
-         }
-     },
+                window.opener.DM.Auth.recvSession(session);
+            }
+            else if (session && ('state' in session) && session.state.indexOf('dmauth_') == 0) // Ensure it's our session
+            {
+                // The session have been received as fragment, but we can't find a valid opener.
+                // This happen either when the user is redirected to the authorization page or when the agent
+                // doesn't fully support window.open, and replace the current window by the opened one
+                // (i.e.: iPhone fullscreen webapp mode)
+                if ('access_token' in session)
+                {
+                    DM.Auth._receivedSession = session;
+                }
+                // Remove the session from the fragment
+                window.location.hash = h.substr(0, h.lastIndexOf('#'));
+            }
+        }
+    },
 
     /**
      * Recieve the authorization server response
