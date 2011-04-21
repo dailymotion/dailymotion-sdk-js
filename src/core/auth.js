@@ -130,7 +130,7 @@ DM.provide('Auth',
                  // (i.e.: iPhone fullscreen webapp mode)
                  DM.Auth._receivedSession = session;
                  // Remove the session from the fragment
-                 window.location.hash = window.location.hash.substr(0, window.location.hash.lastIndexOf('#'));
+                 window.location.hash = h.substr(0, h.lastIndexOf('#'));
              }
          }
      },
