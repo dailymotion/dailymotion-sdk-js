@@ -73,6 +73,12 @@ if (!window.DM)
         // developer and not at all noisy.
         _logging: true,
 
+        _domain:
+        {
+            api: 'https://api.dailymotion.com',
+            www: 'http://www.dailymotion.com'
+        },
+
         /**
          * Copies things from source into target.
          *
@@ -216,9 +222,13 @@ if (!window.DM)
          * @return DOMElement
          * @access private
          */
-        $: function(id)
+        $: function(element)
         {
-            return document.getElementById(id);
+            if (typeof element == "string")
+            {
+                element = document.getElementById(element);
+            }
+            return element;
         }
     };
 }

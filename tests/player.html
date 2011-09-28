@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<script src="../src/third-party/json2.js"></script>
+<script src="../src/core/prelude.js"></script>
+<script src="../src/common/array.js"></script>
+<script src="../src/core/qs.js"></script>
+<script src="../src/core/player.js"></script>
+
+<script src="../src/core/json.js"></script>
+<script src="../src/core/cookie.js"></script>
+<script src="../src/core/event.js"></script>
+<script src="../src/core/init.js"></script>
+<script src="../src/core/api.js"></script>
+<script src="../src/core/auth.js"></script>
+
+<style>
+* {font-family: sans-serif}
+body {margin: 0; overflow: hidden}
+input {font-size: 20px; border: 1px solid #333; background: #fff; margin-left: 0}
+input[type=button]:hover {background: #efefef}
+#player {height: 350px; width: 100%}
+#progress, #duration {width: 80px; text-align:center}
+#console {position: absolute; min-height: 300px; top: 500px; bottom: 0; width: 100%; margin: 0; overflow: auto; list-style-type: none; padding: 5px; background: #eee}
+#console li {padding: 2px; font-family: courier; font-size: 18px}
+.in {color: #232295} .out {color: #d05c00} .minor {color: #ccc} .info {color: #00a3bc} .fatal {color: #ff3333}
+#console.hide-minor .minor {display: none}
+#controls div {margin: 5px}
+</style>
+
+<div id="player"></div>
+<div id="controls">
+<div>
+<input type=button value=toggle-play>
+<input type=button value=play>
+<input type=button value=pause>
+<input type=button value=load prompt="Video Id" default=xctlec>
+<input type=button value=fullscreen>
+<input type=button value=watch-on-site>
+<span style="float: right">Platform: <script>document.write(navigator.platform)</script></span>
+</div>
+<div>
+<input type=button value=toggle-mute>
+<input type=button value=mute>
+<input type=button value=unmute>
+<input type=button value=volume prompt="Volume" default=1>
+</div>
+<div>
+<input id="progress" value="--:--">
+<input id="duration" value="--:--">
+Status: <span id="status">unknown</span>
+<span style="float: right"><input type=checkbox name=html> Force HTML</span>
+<span style="float: right; margin-right: 10px"><input type=checkbox name=fragment> Force Fragment API</span>
+</div>
+</div>
+
+<ul id="console"></ul>
+<span style="position: absolute; bottom: 10px; right: 10px"><input type=checkbox name=hide> Hide time updates</span>
+
+<script>
+//DM._domain.www = 'http://stage-01.dailymotion.com';
+//DM._domain.www = 'http://local.dailymotion.com';
+
+var params = {html: "0"},
+    video = 'xl8qia',
+    player = DM.player($('#player').get(0), {video: video, width: '100%', height: '100%', params: params});
+
+$('input[name=html]:checkbox').change(function()
+{
+    params.html = $(this).is(':checked') ? "1" : "0";
+    player.init(video, params);
+    $('<li class=info>** html=' + params.html + '</li>').prependTo('#console');
+});
+$('input[name=fragment]:checkbox').change(function()
+{
+    DM.Player.API_MODE = $(this).is(':checked') ? 'fragment' : null;
+    player.init(video, params);
+    $('<li class=info>** api-mode=' + DM.Player.API_MODE + '</li>').prependTo('#console');
+
+});
+$('input[name=hide]:checkbox').change(function()
+{
+    $('#console').toggleClass('hide-minor', $(this).is(':checked'));
+});
+$('input[type=button]').click(function()
+{
+    var cmd = this.value, arg;
+    if ($(this).attr('prompt'))
+    {
+        arg = prompt($(this).attr('prompt'), $(this).attr('default'));
+        if (!arg) return;
+    }
+    $('<li class=out>&lt;- ' + cmd + (arg ? '=' + arg : '') + '</li>').prependTo('#console');
+    $('#player').get(0).api(cmd, arg);
+});
+$(player).bind('apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange', function(e)
+{
+    var data = {}, player = e.target;
+    switch (e.type)
+    {
+        case 'timeupdate':
+        case 'seeking':
+        case 'seeked':
+            data['time'] = player.currentTime;
+            $('#progress').val(timeFormated(player.currentTime));
+            break;
+
+        case 'progress':
+            data['buffer'] = player.bufferedTime;
+            break;
+
+        case 'durationchange':
+            data['duration'] = player.duration;
+            $('#duration').val(timeFormated(player.duration));
+            break;
+
+        case 'fullscreenchange':
+            data['fullscreen'] = player.fullscreen;
+            break;
+
+        case 'volumechange':
+            data['volume'] = player.volume;
+            data['muted'] = player.muted;
+            break;
+
+        case 'error':
+            data = player.error;
+            break;
+    }
+
+    if ($.inArray(e.type, ['play', 'playing', 'pause']) !== -1) $('#status').html(e.type);
+    var line = $('<li class=in>-&gt; ' + e.type + ' ' + ($.param(data).replace(/&/g, ' ')) + '</li>').prependTo('#console');
+    if (e.type == 'timeupdate' || e.type == 'progress') line.addClass('minor');
+    if (e.type == 'error') line.addClass('fatal');
+});
+
+function timeFormated(seconds)
+{
+    if (isNaN(seconds) || !isFinite(seconds)) return '--:--';
+    seconds = Math.round(seconds);
+    var hour = (hour = Math.floor(seconds / 3600)) < 10 ? '0' + hour : hour,
+        min = (min = Math.floor(seconds / 60) % 60) < 10 ? '0' + min : min,
+        sec = (sec = seconds % 60) < 10 ? '0' + sec : sec;
+
+    return seconds < 3600 ? min + ':' + sec : hour + 'h' + min;
+}
+
+</script>

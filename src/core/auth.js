@@ -107,7 +107,7 @@ DM.provide('',
  */
 DM.provide('Auth',
 {
-    authorizeUrl: 'https://api.dailymotion.com/oauth/authorize',
+    authorizeUrl: DM._domain.api + '/oauth/authorize',
     _active: {},
     _receivedSession: null,
 
