@@ -132,7 +132,8 @@ DM.provide('Player',
             DM.Player._INSTANCES[this.id] = this;
             this.addEventListener('unload', function() {delete DM.Player._INSTANCES[this.id];});
         }
-        this.autoplay = !(params.autoplay === false || (params.autoplay && params.autoplay.match(/^(?:false|no|off|)/i)));
+        
+        this.autoplay = params.autoplay && (/^(1|true|yes|on)/i).test(params.autoplay + '');
     },
 
     _installHandlers: function()
