@@ -51,7 +51,7 @@ DM.provide('',
 DM.provide('ApiServer',
 {
     METHODS: ['get', 'post', 'delete'],
-    endpoint: 'https://api.dailymotion.com/',
+    endpoint: DM._domain.api + '/',
     _callbacks: {},
 
     /**
