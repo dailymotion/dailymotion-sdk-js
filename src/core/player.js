@@ -133,7 +133,7 @@ DM.provide('Player',
             this.addEventListener('unload', function() {delete DM.Player._INSTANCES[this.id];});
         }
         
-        this.autoplay = params.autoplay && (/^(1|true|yes|on)/i).test(params.autoplay + '');
+        this.autoplay = DM.parseBool(params.autoplay);
     },
 
     _installHandlers: function()
@@ -209,13 +209,13 @@ DM.provide('Player',
         switch (event.event)
         {
             case 'loadedmetadata': this.error = null; this.ended = false; break;
-            case 'timeupdate': this.currentTime = event.time; break;
-            case 'progress': this.bufferedTime = event.time; break;
-            case 'durationchange': this.duration = event.duration; break;
-            case 'seeking': this.seeking = true; this.currentTime = event.time; break;
-            case 'seeked': this.seeking = false; this.currentTime = event.time; break;
-            case 'fullscreenchange': this.fullscreen = event.fullscreen; break;
-            case 'volumechange': this.volume = event.volume; break;
+            case 'timeupdate': this.currentTime = parseFloat(event.time); break;
+            case 'progress': this.bufferedTime = parseFloat(event.time); break;
+            case 'durationchange': this.duration = parseFloat(event.duration); break;
+            case 'seeking': this.seeking = true; this.currentTime = parseFloat(event.time); break;
+            case 'seeked': this.seeking = false; this.currentTime = parseFloat(event.time); break;
+            case 'fullscreenchange': this.fullscreen = DM.parseBool(event.fullscreen); break;
+            case 'volumechange': this.volume = parseFloat(event.volume); break;
             case 'playing':
             case 'play': this.paused = false; break;
             case 'ended': this.ended = true; break; // no break, also set paused

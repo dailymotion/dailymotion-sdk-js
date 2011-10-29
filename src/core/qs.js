@@ -76,17 +76,7 @@ DM.provide('QS',
             pair = parts[i].split('=', 2);
             if (pair && pair[0])
             {
-                var val = '';
-                if (pair[1])
-                {
-                    switch (pair[1])
-                    {
-                        case 'true': val = true; break;
-                        case 'false': val = false; break;
-                        default: val = decode(pair[1].replace(/\+/g, '%20'));
-                    }
-                }
-                params[decode(pair[0])] = val;
+                params[decode(pair[0])] = pair[1] ? decode(pair[1].replace(/\+/g, '%20')) : '';
             }
         }
 

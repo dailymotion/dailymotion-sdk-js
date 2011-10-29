@@ -229,6 +229,14 @@ if (!window.DM)
                 element = document.getElementById(element);
             }
             return element;
+        },
+
+        parseBool: function(value)
+        {
+            if (value === true || value === false) return value;
+            if (value === 0) return false;
+            if (typeof value == 'string') return !value.match(/^(?:|false|no|off|0)$/i);
+            return !!value;
         }
     };
 }
