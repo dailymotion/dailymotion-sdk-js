@@ -4,3 +4,9 @@ COMPRESSOR_BIN := yuicompressor
 
 all.js: $(FILES)
 	cat $(FILES) | $(COMPRESSOR_BIN) --type js -o $@
+
+MXMLC_BIN := mxmlc
+
+xdcom.swf: src/core/xdcom/*.as
+	$(MXMLC_BIN) --strict -optimize -debug=false -sp src/core/xdcom -o xdcom.swf -- src/core/xdcom/XDCom.as
+
