@@ -28,19 +28,21 @@ package
 
     public dynamic class XDCom extends Sprite
     {
-        private var localID    : String;
-        private var remoteID   : String;
-        private var api        : Api;
-        private var connection : LocalConnection;
+        private var localID         : String;
+        private var remoteID        : String;
+        private var onReadyCallback : String;
+        private var api             : Api;
+        private var connection      : LocalConnection;
 
         public function XDCom() : void
         {
             Security.allowDomain('*');
 
-            this.localID    = '';
-            this.remoteID   = '';
-            this.api        = new Api(this);
-            this.connection = new LocalConnection();
+            this.localID         = '';
+            this.remoteID        = '';
+            this.onReadyCallback = 'onXDComReady';
+            this.api             = new Api(this);
+            this.connection      = new LocalConnection();
 
             this.addEventListener(Event.ADDED_TO_STAGE, this.addedToStageHandler);
         }
@@ -56,7 +58,7 @@ package
 
                 if (success)
                 {
-                    this.api.setReady();
+                    this.api.setReady(this.onReadyCallback);
                 }
             }
         }
@@ -66,7 +68,7 @@ package
         {
             var v : *;
             var success : Boolean = true;
-            for each (var flashvar : String in ['remoteID', 'localID'])
+            for each (var flashvar : String in ['remoteID', 'localID', 'onReadyCallback'])
             {
                 v = LoaderInfo(this.root.loaderInfo).parameters[flashvar];
                 if (v === null || v === false || typeof v != 'string' || v == '')
@@ -76,7 +78,7 @@ package
                 }
                 this[flashvar] = v;
             }
-            return this.localID != '' && this.remoteID != '' && success;
+            return this.localID != '' && this.remoteID != '' && this.onReadyCallback != '' && success;
         }
 
         // Init the connection to the LocalConnection

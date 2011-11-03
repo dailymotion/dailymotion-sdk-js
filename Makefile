@@ -8,5 +8,5 @@ all.js: $(FILES)
 MXMLC_BIN := mxmlc
 
 xdcom.swf: src/core/xdcom/*.as
-	$(MXMLC_BIN) --strict -optimize -debug=false -sp src/core/xdcom -o xdcom.swf -- src/core/xdcom/XDCom.as
+	$(MXMLC_BIN) --strict -optimize -debug=false -static-link-runtime-shared-libraries=true -sp src/core/xdcom -o xdcom.swf -- src/core/xdcom/XDCom.as
 

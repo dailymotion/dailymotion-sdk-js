@@ -48,10 +48,10 @@ package
         }
 
         // Dispatch the ready status
-        public function setReady() : void
+        public function setReady(onReadyCallback : String) : void
         {
             this.ready = true;
-            ExternalInterface.call('onXDComReady', this.id);
+            ExternalInterface.call(onReadyCallback, this.id);
         }
 
         // Call postMessage on the XDCom instance
