@@ -97,9 +97,13 @@ DM.provide('Player',
         });
 
         var player = document.createElement("iframe");
-        DM.Array.forEach(['id', 'style', 'class'], function(attr) {player.setAttribute(attr, element.getAttribute(attr));});
+        DM.Array.forEach(['id', 'style', 'class'], function(attr)
+        {
+            var val = element.getAttribute(attr);
+            if (val) player.setAttribute(attr, val);
+        });
         element.parentNode.replaceChild(player, element);
-        player.frameborder = "0";
+        player.setAttribute("frameborder", "0");
         player.title = "Dailymotion " + options.title;
         player.type = "text/html";
         player.width = options.width;
