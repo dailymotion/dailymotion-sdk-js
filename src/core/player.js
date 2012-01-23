@@ -16,6 +16,7 @@
  * @provides dm.player
  * @requires dm.prelude
  *           dm.qs
+ *           dm.xdcom
  */
 
 /**
@@ -42,12 +43,12 @@ DM.provide('',
 DM.provide('Player',
 {
     _INSTANCES: {},
-    _HANDLER: null,
     _INTERVAL_ID: null,
     API_MODE: null,
 
 
     // video properties
+    apiReady: false,
     autoplay: false,
     currentTime: 0,
     bufferedTime: 0,
@@ -126,9 +127,18 @@ DM.provide('Player',
 
     init: function(video, params)
     {
-        DM.Player._installHandlers();
+        var self = this;
+        DM.Player._installHandlers(function()
+        {
+            // ask the peer to resend the apiready event in case it missed it while installing handlers
+            self._send('check');
+        });
         params = typeof params == "object" ? params : {};
         params.api = DM.Player.API_MODE;
+        if (DM.Player.API_MODE == 'xdcom')
+        {
+            params.xdcomId = DM.Player.xdcomChannel.connectionId;
+        }
         this.id = params.id = this.id ? this.id : DM.guid();
         this.src = DM._domain.www + "/embed/video/" + video + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
@@ -140,27 +150,37 @@ DM.provide('Player',
         this.autoplay = DM.parseBool(params.autoplay);
     },
 
-    _installHandlers: function()
+    _installHandlers: function(initedCallback)
     {
-        if (window.postMessage && DM.Player.API_MODE != "fragment")
+        if (DM.Player.API_MODE !== null) return;
+        if (false && window.postMessage)
         {
             DM.Player.API_MODE = "postMessage";
 
-            if (!DM.Player._HANDLER)
+            var handler = function(e)
             {
-                DM.Player._HANDLER = function(e)
-                {
-                    if (!e.origin || e.origin.indexOf(DM._domain.www) !== 0) return;
-                    var event = DM.QS.decode(e.data);
-                    if (!event.id || !event.event) return;
-                    var player = DM.$(event.id);
-                    player._recvEvent(event);
-                };
-                if (window.addEventListener) window.addEventListener("message", DM.Player._HANDLER, false);
-                else if (window.attachEvent) window.attachEvent("onmessage", DM.Player._HANDLER);
-            }
+                if (!e.origin || e.origin.indexOf(DM._domain.www) !== 0) return;
+                var event = DM.QS.decode(e.data);
+                if (!event.id || !event.event) return;
+                var player = DM.$(event.id);
+                player._recvEvent(event);
+            };
+            if (window.addEventListener) window.addEventListener("message", handler, false);
+            else if (window.attachEvent) window.attachEvent("onmessage", handler);
         }
-        else
+        else if(DM.XDCom.capable())
+        {
+            DM.Player.API_MODE = "xdcom";
+            DM.Player.xdcomChannel = DM.XDCom.createChannel(function(data)
+            {
+                var event = DM.QS.decode(data);
+                if (!event.id || !event.event) return;
+                var player = DM.$(event.id);
+                player._recvEvent(event);
+            }, initedCallback);
+        }
+
+        if (DM.Player.API_MODE === null)
         {
             DM.Player.API_MODE = "fragment";
             return; // no yet ready
@@ -185,15 +205,24 @@ DM.provide('Player',
         }
     },
 
-    _send: window.postMessage ? function(command)
+    _send: function(command) // fragment API mode fallback
     {
-        this.contentWindow.postMessage(command, DM._domain.www);
-    }
-    : function(command) // fragment API mode fallback
-    {
-        var src = this.src, pos;
-        if ((pos = src.indexOf('#')) != -1) src = src.substring(0, pos);
-        this.src = src + '#' + command;
+        switch (DM.Player.API_MODE)
+        {
+            case 'postMessage':
+                this.contentWindow.postMessage(command, DM._domain.www);
+                break;
+
+            case 'xdcom':
+                DM.Player.xdcomChannel.postMessage(this.id, command);
+                break;
+
+            case 'fragment':
+                var src = this.src, pos;
+                if ((pos = src.indexOf('#')) != -1) src = src.substring(0, pos);
+                this.src = src + '#' + command;
+                break;
+        }
     },
 
     _dispatch: document.createEvent ? function(type)
@@ -212,6 +241,7 @@ DM.provide('Player',
     {
         switch (event.event)
         {
+            case 'apiready': if (this.apiReady) return /* dispatch only once */; else this.apiReady = true; break;
             case 'loadedmetadata': this.error = null; this.ended = false; break;
             case 'timeupdate': this.currentTime = parseFloat(event.time); break;
             case 'progress': this.bufferedTime = parseFloat(event.time); break;

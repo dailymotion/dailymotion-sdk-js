@@ -76,7 +76,8 @@ if (!window.DM)
         _domain:
         {
             api: 'https://api.dailymotion.com',
-            www: 'http://www.dailymotion.com'
+            www: 'http://www.dailymotion.com',
+            cdn: '//api.dmcdn.net'
         },
 
         /**
