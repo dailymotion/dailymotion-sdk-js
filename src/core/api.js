@@ -50,9 +50,10 @@ DM.provide('',
  */
 DM.provide('ApiServer',
 {
+    type: null,
     METHODS: ['get', 'post', 'delete'],
-    endpoint: DM._domain.api + '/',
     _callbacks: {},
+    _calls: [],
 
     /**
      * Make a API call to Dailymotion's RESTful API.
@@ -149,7 +150,24 @@ DM.provide('ApiServer',
             }
         }
 
-        DM.ApiServer.jsonp(path, method, DM.JSON.flatten(params), cb);
+        DM.ApiServer.transport(path, method, DM.JSON.flatten(params), cb);
+    },
+
+    transport: function(path, method, params, cb)
+    {
+        try
+        {
+            DM.ApiServer.xhr();
+            DM.ApiServer.transport = DM.ApiServer.ajax;
+            DM.ApiServer.type = 'ajax';
+        }
+        catch (e)
+        {
+            DM.ApiServer.transport = DM.ApiServer.jsonp;
+            DM.ApiServer.type = 'jsonp';
+        }
+
+        DM.ApiServer.transport(path, method, params, cb);
     },
 
     /**
@@ -170,7 +188,7 @@ DM.provide('ApiServer',
         params.method = method;
         params.callback = 'DM.ApiServer._callbacks.' + g;
 
-        var url = (DM.ApiServer.endpoint + path + (path.indexOf('?') > -1 ? '&' : '?') + DM.QS.encode(params));
+        var url = (DM._domain.api + '/' + path + (path.indexOf('?') > -1 ? '&' : '?') + DM.QS.encode(params));
         if (url.length > 2000)
         {
             throw new Error('JSONP only support a maximum of 2000 bytes of input.');
@@ -179,7 +197,7 @@ DM.provide('ApiServer',
         // this is the JSONP callback invoked by the response
         DM.ApiServer._callbacks[g] = function(response)
         {
-            cb && cb(response);
+            if(cb) cb(response);
             delete DM.ApiServer._callbacks[g];
             script.src = null;
             script.parentNode.removeChild(script);
@@ -187,5 +205,106 @@ DM.provide('ApiServer',
 
         script.src = url;
         document.getElementsByTagName('head')[0].appendChild(script);
+    },
+
+    /**
+     * CORS Ajax Support
+     *
+     * @access private
+     * @param path   {String}   the request path
+     * @param method {String}   the http method
+     * @param params {Object}   the parameters for the query
+     * @param cb     {Function} the callback function to handle the response
+     */
+    ajax: function(path, method, params, cb)
+    {
+        DM.ApiServer._calls.push({path: path, method: method, params: params, cb: cb});
+        DM.ApiServer.ajaxHandleQueue();
+    },
+
+    ajaxHandleQueue: function()
+    {
+        if (!DM.ApiServer._callTimeout && DM.ApiServer._calls.length > 0 && !DM.ApiServer._pendingCalls)
+        {
+            DM.ApiServer._callTimeout = setTimeout(function()
+            {
+                DM.ApiServer.ajaxUnqueue();
+                delete DM.ApiServer._callTimeout;
+            }, 0);
+        }
+    },
+
+    ajaxUnqueue: function()
+    {
+        var multicall = [];
+        for (var i = 0, l = DM.ApiServer._calls.length; i < l; i++)
+        {
+            var call = DM.ApiServer._calls[i];
+            multicall.push
+            ({
+                call: call.method.toUpperCase() + ' /' + call.path,
+                args: call.params,
+                id: i
+            });
+        }
+        DM.ApiServer._pendingCalls = DM.ApiServer._calls;
+        DM.ApiServer._calls = [];
+
+        var xhr = DM.ApiServer.xhr();
+        xhr.open('POST', DM._domain.api);
+        // Lie on Content-Type to prevent from CORS preflight check
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send(DM.JSON.stringify(multicall));
+
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == 4)
+            {
+                try
+                {
+                    var responses = DM.JSON.parse(xhr.responseText);
+                    for (var i = 0, l = responses.length; i < l; i++)
+                    {
+                        var response = responses[i];
+                            call = 'id' in response && DM.ApiServer._pendingCalls[response.id] ? DM.ApiServer._pendingCalls[response.id] : null;
+
+                        if (!call)
+                        {
+                            DM.error('Response with no valid call id: ' + DM.JSON.stringify(response));
+                            continue;
+                        }
+
+                        call.cb(response.result ? response.result : response);
+                        DM.ApiServer._pendingCalls[response.id] = null;
+                    }
+                }
+                catch (e)
+                {
+                    DM.error('Cannot parse multicall response: ' + xhr.responseText);
+                }
+
+                DM.Array.forEach(DM.ApiServer._pendingCalls, function(call)
+                {
+                    if (call)
+                    {
+                        call.cb({error: {code: 500, message: 'Invalid server response', type: 'transport_error'}});
+                    }
+                });
+
+                delete DM.ApiServer._pendingCalls;
+                DM.ApiServer.ajaxHandleQueue();
+            }
+        };
+    },
+
+    xhr: function()
+    {
+        var xhr = new window.XMLHttpRequest();
+        if (!('withCredentials' in xhr))
+        {
+            // Doesn't support CORS
+            throw new Error('Browser is not CORS capable');
+        }
+        return xhr;
     }
 });
