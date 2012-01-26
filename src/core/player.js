@@ -153,7 +153,7 @@ DM.provide('Player',
     _installHandlers: function(initedCallback)
     {
         if (DM.Player.API_MODE !== null) return;
-        if (false && window.postMessage)
+        if (window.postMessage)
         {
             DM.Player.API_MODE = "postMessage";
 
