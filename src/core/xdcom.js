@@ -52,7 +52,7 @@ DM.provide('XDCom',
 
         var container = document.createElement('div'),
             style = container.style;
-        style.position = 'container';
+        style.position = 'absolute';
         style.top = '-10000px';
         style.width = style.height = 0;
         document.body.appendChild(container);
