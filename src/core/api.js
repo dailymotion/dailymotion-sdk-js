@@ -126,31 +126,7 @@ DM.provide('ApiServer',
             return;
         }
 
-        DM.ApiServer.oauthRequest(path, method, params, cb);
-    },
-
-    /**
-     * Add the oauth parameter, and fire off a request.
-     *
-     * @access private
-     * @param path   {String}   the request path
-     * @param method {String}   the http method
-     * @param params {Object}   the parameters for the query
-     * @param cb     {Function} the callback function to handle the response
-     */
-    oauthRequest: function(path, method, params, cb)
-    {
-        // add oauth token if we have one
-        if (DM.getSession)
-        {
-            var session = DM.getSession();
-            if (session && session.access_token && !params.access_token)
-            {
-                params.access_token = session.access_token;
-            }
-        }
-
-        DM.ApiServer.transport(path, method, DM.JSON.flatten(params), cb);
+        DM.ApiServer.transport(path, method, params, cb);
     },
 
     transport: function(path, method, params, cb)
@@ -187,6 +163,16 @@ DM.provide('ApiServer',
         // jsonp needs method overrides as the request itself is always a GET
         params.method = method;
         params.callback = 'DM.ApiServer._callbacks.' + g;
+
+        // add oauth token if we have one
+        if (DM.getSession)
+        {
+            var session = DM.getSession();
+            if (session && session.access_token && !params.access_token)
+            {
+                params.access_token = session.access_token;
+            }
+        }
 
         var url = (DM._domain.api + '/' + path + (path.indexOf('?') > -1 ? '&' : '?') + DM.QS.encode(params));
         if (url.length > 2000)
@@ -236,7 +222,9 @@ DM.provide('ApiServer',
 
     ajaxUnqueue: function()
     {
-        var multicall = [];
+        var multicall = [],
+            endpoint = DM._domain.api;
+
         for (var i = 0, l = DM.ApiServer._calls.length; i < l; i++)
         {
             var call = DM.ApiServer._calls[i];
@@ -250,8 +238,18 @@ DM.provide('ApiServer',
         DM.ApiServer._pendingCalls = DM.ApiServer._calls;
         DM.ApiServer._calls = [];
 
+        // add oauth token if we have one
+        if (DM.getSession)
+        {
+            var session = DM.getSession();
+            if (session && session.access_token)
+            {
+                endpoint += '?access_token=' + session.access_token;
+            }
+        }
+
         var xhr = DM.ApiServer.xhr();
-        xhr.open('POST', DM._domain.api);
+        xhr.open('POST', endpoint);
         // Lie on Content-Type to prevent from CORS preflight check
         xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhr.send(DM.JSON.stringify(multicall));
