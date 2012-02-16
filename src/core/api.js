@@ -164,6 +164,17 @@ DM.provide('ApiServer',
         params.method = method;
         params.callback = 'DM.ApiServer._callbacks.' + g;
 
+        for (var param in params)
+        {
+            if (params.hasOwnProperty(param))
+            {
+                if (DM.type(params[param]) == 'array')
+                {
+                    params[param] = params[param].join(',');
+                }
+            }
+        }
+
         // add oauth token if we have one
         if (DM.getSession)
         {

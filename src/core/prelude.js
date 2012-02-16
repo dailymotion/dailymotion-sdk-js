@@ -238,6 +238,21 @@ if (!window.DM)
             if (value === 0) return false;
             if (typeof value == 'string') return !value.match(/^(?:|false|no|off|0)$/i);
             return !!value;
+        },
+
+        type: function(obj)
+        {
+            if (!DM._class2type)
+            {
+                DM._class2type = {};
+                var classes = 'Boolean Number String Function Array Date RegExp Object'.split(' ');
+                for (var i = 0, l = classes.length; i < l; i++)
+                {
+                    var name = classes[i];
+                    DM._class2type['[object ' + name + ']'] = name.toLowerCase();
+                }
+            }
+            return obj === null ? String(obj) : DM._class2type[toString.call(obj)] || "object";
         }
     };
 }
