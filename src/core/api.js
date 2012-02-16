@@ -283,7 +283,7 @@ DM.provide('ApiServer',
                             continue;
                         }
 
-                        call.cb(response.result ? response.result : response);
+                        if (call.cb) call.cb(response.result ? response.result : response);
                         DM.ApiServer._pendingCalls[response.id] = null;
                     }
                 }
@@ -294,7 +294,7 @@ DM.provide('ApiServer',
 
                 DM.Array.forEach(DM.ApiServer._pendingCalls, function(call)
                 {
-                    if (call)
+                    if (call && call.cb)
                     {
                         call.cb({error: {code: 500, message: 'Invalid server response', type: 'transport_error'}});
                     }
