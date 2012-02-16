@@ -255,7 +255,7 @@ DM.provide('ApiServer',
             var session = DM.getSession();
             if (session && session.access_token)
             {
-                endpoint += '?access_token=' + session.access_token;
+                endpoint += '?access_token=' + encodeURIComponent(session.access_token);
             }
         }
 
