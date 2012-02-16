@@ -269,23 +269,35 @@ DM.provide('ApiServer',
         {
             if (xhr.readyState == 4)
             {
+                var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}};
+
                 try
                 {
                     var responses = DM.JSON.parse(xhr.responseText);
-                    for (var i = 0, l = responses.length; i < l; i++)
+
+                    if (DM.type(responses) == 'array')
                     {
-                        var response = responses[i];
-                            call = 'id' in response && DM.ApiServer._pendingCalls[response.id] ? DM.ApiServer._pendingCalls[response.id] : null;
-
-                        if (!call)
+                        for (var i = 0, l = responses.length; i < l; i++)
                         {
-                            DM.error('Response with no valid call id: ' + DM.JSON.stringify(response));
-                            continue;
-                        }
+                            var response = responses[i];
+                                call = 'id' in response && DM.ApiServer._pendingCalls[response.id] ? DM.ApiServer._pendingCalls[response.id] : null;
 
-                        if (call.cb) call.cb(response.result ? response.result : response);
-                        DM.ApiServer._pendingCalls[response.id] = null;
+                            if (!call)
+                            {
+                                DM.error('Response with no valid call id: ' + DM.JSON.stringify(response));
+                                continue;
+                            }
+
+                            if (call.cb) call.cb(response.result ? response.result : response);
+                            DM.ApiServer._pendingCalls[response.id] = null;
+                        }
                     }
+                    else if (DM.type(responses) == 'object' && 'error' in responses)
+                    {
+                        // Global error
+                        globalError = responses;
+                    }
+                    // else: pending calls won't be unqueued, global error will be returned
                 }
                 catch (e)
                 {
@@ -296,7 +308,7 @@ DM.provide('ApiServer',
                 {
                     if (call && call.cb)
                     {
-                        call.cb({error: {code: 500, message: 'Invalid server response', type: 'transport_error'}});
+                        call.cb(globalError);
                     }
                 });
 
