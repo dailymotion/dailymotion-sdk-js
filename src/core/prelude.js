@@ -252,7 +252,7 @@ if (!window.DM)
                     DM._class2type['[object ' + name + ']'] = name.toLowerCase();
                 }
             }
-            return obj === null ? String(obj) : DM._class2type[toString.call(obj)] || "object";
+            return obj === null ? String(obj) : DM._class2type[Object.prototype.toString.call(obj)] || "object";
         }
     };
 }
