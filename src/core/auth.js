@@ -77,7 +77,7 @@ DM.provide('',
 
         if (opts.display === 'popup')
         {
-            var win = window.open(DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
+            var win = window.open(DM._domain.api + DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
 
             if (cb)
             {
@@ -87,7 +87,7 @@ DM.provide('',
         }
         else
         {
-            location.href = DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts);
+            location.href = DM._domain.api + DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts);
         }
     },
 
@@ -107,7 +107,7 @@ DM.provide('',
  */
 DM.provide('Auth',
 {
-    authorizeUrl: DM._domain.api + '/oauth/authorize',
+    authorizeUrl: '/oauth/authorize',
     _active: {},
     _receivedSession: null,
 
