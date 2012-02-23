@@ -79,11 +79,8 @@ DM.provide('',
         {
             var win = window.open(DM._domain.api + DM.Auth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
 
-            if (cb)
-            {
-                DM.Auth._active[opts.state] = {cb: cb, win: win};
-                DM.Auth._popupMonitor();
-            }
+            DM.Auth._active[opts.state] = {cb: cb ? cb : function() {}, win: win};
+            DM.Auth._popupMonitor();
         }
         else
         {
