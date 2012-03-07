@@ -45,7 +45,7 @@ DM.provide('Player',
     _INSTANCES: {},
     _INTERVAL_ID: null,
     API_MODE: null,
-
+    EVENT_HANDLERS: {},
 
     // video properties
     apiReady: false,
@@ -233,8 +233,19 @@ DM.provide('Player',
     }
     : function(type) // IE compat
     {
-        e = document.createEventObject();
-        this.fireEvent('on'+event.event, e);
+        if ('on' + type in this)
+        {
+            e = document.createEventObject();
+            this.fireEvent('on' + type, e);
+        }
+        else if (type in this.EVENT_HANDLERS)
+        {
+            var e = {type: type, target: this};
+            DM.Array.forEach(this.EVENT_HANDLERS[type], function(handler)
+            {
+                handler(e);
+            });
+        }
     },
 
     _recvEvent: function(event)
@@ -264,6 +275,17 @@ DM.provide('Player',
     // IE compat (DM.copy won't set this if already defined)
     addEventListener: function(name, callback, capture)
     {
-        if (this.attachEvent) this.attachEvent("on" + name, callback, capture);
+        if ('on' + name in this && this.attachEvent)
+        {
+            this.attachEvent("on" + name, callback, capture);
+        }
+        else
+        {
+            if (!(name in this.EVENT_HANDLERS))
+            {
+                this.EVENT_HANDLERS[name] = [];
+            }
+            this.EVENT_HANDLERS[name].push(callback);
+        }
     }
 });
