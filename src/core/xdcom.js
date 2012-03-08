@@ -50,7 +50,8 @@ DM.provide('XDCom',
                    '</object>';
         }
 
-        var container = document.createElement('div'),
+        var xdcom,
+            container = document.createElement('div'),
             style = container.style;
         style.position = 'absolute';
         style.top = '-10000px';
@@ -60,14 +61,12 @@ DM.provide('XDCom',
         window.onDMXDComMessage = messageHandler;
         window.onDMXDComReady = function()
         {
-            // Do no use xdcom variable here to prevent from race condition under IE: when the
-            // xdcom.swf file is cached, everything happen synchrone...
-            document.getElementById('DMXDCom').addListener('onDMXDComMessage');
+            xdcom.addListener('onDMXDComMessage');
             if (initedCallback) initedCallback();
         };
 
         container.innerHTML = html;
-        var xdcom = document.getElementById('DMXDCom');
+        xdcom = document.getElementById('DMXDCom');
         xdcom.connectionId = id;
 
         return xdcom;
