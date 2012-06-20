@@ -271,37 +271,34 @@ DM.provide('ApiServer',
             {
                 var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}};
 
-                try
-                {
-                    var responses = DM.JSON.parse(xhr.responseText);
+                var responses = DM.JSON.parse(xhr.responseText);
+                console.log(responses);
 
-                    if (DM.type(responses) == 'array')
+                if (DM.type(responses) == 'array')
+                {
+                    for (var i = 0, l = responses.length; i < l; i++)
                     {
-                        for (var i = 0, l = responses.length; i < l; i++)
+                        var response = responses[i];
+                            call = 'id' in response && DM.ApiServer._pendingCalls[response.id] ? DM.ApiServer._pendingCalls[response.id] : null;
+
+                        if (!call)
                         {
-                            var response = responses[i];
-                                call = 'id' in response && DM.ApiServer._pendingCalls[response.id] ? DM.ApiServer._pendingCalls[response.id] : null;
-
-                            if (!call)
-                            {
-                                DM.error('Response with no valid call id: ' + DM.JSON.stringify(response));
-                                continue;
-                            }
-
-                            if (call.cb) call.cb(response.result ? response.result : response);
-                            DM.ApiServer._pendingCalls[response.id] = null;
+                            DM.error('Response with no valid call id: ' + DM.JSON.stringify(response));
+                            continue;
                         }
+
+                        if (call.cb) call.cb(response.result ? response.result : response);
+                        DM.ApiServer._pendingCalls[response.id] = null;
                     }
-                    else if (DM.type(responses) == 'object' && 'error' in responses)
-                    {
-                        // Global error
-                        globalError = responses;
-                    }
-                    // else: pending calls won't be unqueued, global error will be returned
                 }
-                catch (e)
+                else if (DM.type(responses) == 'object' && 'error' in responses)
                 {
-                    DM.error('Cannot parse multicall response: ' + xhr.responseText);
+                    // Global error
+                    globalError = responses;
+                }
+                else
+                {
+                    DM.error('Cannot parse multicall response: ' + e + ' response data ' + xhr.responseText);
                 }
 
                 DM.Array.forEach(DM.ApiServer._pendingCalls, function(call)
