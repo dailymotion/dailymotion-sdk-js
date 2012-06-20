@@ -229,6 +229,16 @@ DM.provide('ApiServer',
                 delete DM.ApiServer._callTimeout;
             }, 0);
         }
+        else if (DM.ApiServer._calls.length == 10)
+        {
+            // Limit of 10 calls per request reached, unqueue immediatly
+            if (DM.ApiServer._callTimeout)
+            {
+                clearTimeout(DM.ApiServer._callTimeout);
+                delete DM.ApiServer._callTimeout;
+            }
+            DM.ApiServer.ajaxUnqueue();
+        }
     },
 
     ajaxUnqueue: function()
