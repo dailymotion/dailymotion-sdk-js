@@ -221,11 +221,12 @@ DM.provide('ApiServer',
 
     ajaxHandleQueue: function()
     {
-        if (!DM.ApiServer._callTimeout && DM.ApiServer._calls.length > 0 && !DM.ApiServer._pendingCalls)
+        if (!DM.ApiServer._callTimeout && DM.ApiServer._calls.length > 0)
         {
             DM.ApiServer._callTimeout = setTimeout(function()
             {
-                DM.ApiServer.ajaxUnqueue();
+                DM.ApiServer.performCalls(DM.ApiServer._calls);
+                DM.ApiServer._calls = [];
                 delete DM.ApiServer._callTimeout;
             }, 0);
         }
@@ -237,18 +238,19 @@ DM.provide('ApiServer',
                 clearTimeout(DM.ApiServer._callTimeout);
                 delete DM.ApiServer._callTimeout;
             }
-            DM.ApiServer.ajaxUnqueue();
+            DM.ApiServer.performCalls(DM.ApiServer._calls);
+            DM.ApiServer._calls = [];
         }
     },
 
-    ajaxUnqueue: function()
+    performCalls: function(calls)
     {
         var multicall = [],
             endpoint = DM._domain.api;
 
         for (var i = 0, l = DM.ApiServer._calls.length; i < l; i++)
         {
-            var call = DM.ApiServer._calls[i];
+            var call = calls[i];
             multicall.push
             ({
                 call: call.method.toUpperCase() + ' /' + call.path,
@@ -256,8 +258,6 @@ DM.provide('ApiServer',
                 id: i
             });
         }
-        DM.ApiServer._pendingCalls = DM.ApiServer._calls;
-        DM.ApiServer._calls = [];
 
         // add oauth token if we have one
         if (DM.getSession)
@@ -282,14 +282,13 @@ DM.provide('ApiServer',
                 var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}};
 
                 var responses = DM.JSON.parse(xhr.responseText);
-                console.log(responses);
 
                 if (DM.type(responses) == 'array')
                 {
                     for (var i = 0, l = responses.length; i < l; i++)
                     {
                         var response = responses[i];
-                            call = 'id' in response && DM.ApiServer._pendingCalls[response.id] ? DM.ApiServer._pendingCalls[response.id] : null;
+                            call = 'id' in response && calls[response.id] ? calls[response.id] : null;
 
                         if (!call)
                         {
@@ -298,7 +297,7 @@ DM.provide('ApiServer',
                         }
 
                         if (call.cb) call.cb(response.result ? response.result : response);
-                        DM.ApiServer._pendingCalls[response.id] = null;
+                        calls[response.id] = null;
                     }
                 }
                 else if (DM.type(responses) == 'object' && 'error' in responses)
@@ -311,16 +310,13 @@ DM.provide('ApiServer',
                     DM.error('Cannot parse multicall response: ' + e + ' response data ' + xhr.responseText);
                 }
 
-                DM.Array.forEach(DM.ApiServer._pendingCalls, function(call)
+                DM.Array.forEach(calls, function(call)
                 {
                     if (call && call.cb)
                     {
                         call.cb(globalError);
                     }
                 });
-
-                delete DM.ApiServer._pendingCalls;
-                DM.ApiServer.ajaxHandleQueue();
             }
         };
     },
