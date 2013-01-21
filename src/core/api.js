@@ -296,7 +296,21 @@ DM.provide('ApiServer',
                             continue;
                         }
 
-                        if (call.cb) call.cb(response.result ? response.result : response);
+                        if (call.cb)
+                        {
+                            if ('result' in response)
+                            {
+                                call.cb(response.result);
+                            }
+                            else if ('error' in response)
+                            {
+                                call.cb({error: response.error}); // cleans the call id or other unwanted stuff
+                            }
+                            else
+                            {
+                                call.cb({error: {code: 500, message: 'Missing result or error key', type: 'transport_error'}});
+                            }
+                        }
                         calls[response.id] = null;
                     }
                 }
