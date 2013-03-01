@@ -79,7 +79,7 @@ DM.provide('Cookie',
     {
         // note, we have the opening quote for the value in the regex, but do
         // not have a closing quote. this is because the \b already handles it.
-        var cookie = document.cookie.match('\\bdms_' + DM._apiKey + '="([^;]*)\\b'),
+        var cookie = decodeURIComponent(document.cookie).match('\\bdms_' + DM._apiKey + '="([^;]*)\\b'),
             session;
 
         if (cookie)
