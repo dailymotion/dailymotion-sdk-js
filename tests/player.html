@@ -49,7 +49,8 @@ input[type=button]:hover {background: #efefef}
 <input id="progress" value="--:--">
 <input id="duration" value="--:--">
 Status: <span id="status">unknown</span>
-<span style="float: right"><input type=checkbox name=html> Force HTML</span>
+<span style="float: right"><input type=checkbox name=empty> Force Empty Player</span>
+<span style="float: right; margin-right: 10px"><input type=checkbox name=html> Force HTML</span>
 <span style="float: right; margin-right: 10px"><input type=checkbox name=fragment> Force Fragment API</span>
 </div>
 </div>
@@ -81,6 +82,12 @@ $('input[name=fragment]:checkbox').change(function()
     player.init(video, params);
     $('<li class=info>** api-mode=' + DM.Player.API_MODE + '</li>').prependTo('#console');
 
+});
+$('input[name=empty]:checkbox').change(function()
+{
+    var v = $(this).is(':checked') ? undefined : video
+    player.init(v, params);
+    $('<li class=info>** empty player:' + (!v ? 'on' : 'off') + '</li>').prependTo('#console');
 });
 $('input[name=hide]:checkbox').change(function()
 {
