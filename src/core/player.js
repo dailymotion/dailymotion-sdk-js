@@ -85,8 +85,6 @@ DM.provide('Player',
             throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element);
         if (!options || typeof options != 'object')
             throw new Error("Missing `options' parameter for DM.player()");
-        if (!options.video)
-            throw new Error("Missing `video' option parameter for DM.player()");
 
         options = DM.copy(options,
         {
@@ -140,13 +138,13 @@ DM.provide('Player',
             params.xdcomId = DM.Player.xdcomChannel.connectionId;
         }
         this.id = params.id = this.id ? this.id : DM.guid();
-        this.src = DM._domain.www + "/embed/video/" + video + '?' + DM.QS.encode(params);
+        this.src = DM._domain.www + "/embed" + (video ? "/video/" + video : "") + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
         {
             DM.Player._INSTANCES[this.id] = this;
             this.addEventListener('unload', function() {delete DM.Player._INSTANCES[this.id];});
         }
-        
+
         this.autoplay = DM.parseBool(params.autoplay);
     },
 
