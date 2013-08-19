@@ -104,12 +104,13 @@ $('input[type=button]').click(function()
     $('<li class=out>&lt;- ' + cmd + (arg ? '=' + arg : '') + '</li>').prependTo('#console');
     $('#player').get(0).api(cmd, arg);
 });
-$(player).bind('apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange', function(e)
+$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
 {
     var data = {}, player = e.target;
     switch (e.type)
     {
         case 'timeupdate':
+        case 'ad_timeupdate':
         case 'seeking':
         case 'seeked':
             data['time'] = player.currentTime;
@@ -139,9 +140,9 @@ $(player).bind('apiready play playing canplay canplaythrough loadedmetadata time
             break;
     }
 
-    if ($.inArray(e.type, ['play', 'playing', 'pause']) !== -1) $('#status').html(e.type);
+    if ($.inArray(e.type, ['play', 'playing', 'pause', 'ad_play', 'ad_pause']) !== -1) $('#status').html(e.type);
     var line = $('<li class=in>-&gt; ' + e.type + ' ' + ($.param(data).replace(/&/g, ' ')) + '</li>').prependTo('#console');
-    if (e.type == 'timeupdate' || e.type == 'progress') line.addClass('minor');
+    if ($.inArray(e.type, ['timeupdate', 'progress', 'ad_timeupdate']) !== -1) line.addClass('minor');
     if (e.type == 'error') line.addClass('fatal');
 });
 
