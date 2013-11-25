@@ -74,7 +74,7 @@ DM.provide('Player',
 
     api: function(command, arg)
     {
-        if (arg) command += '=' + arg;
+        if(typeof arg !== 'undefined') command += '=' + arg;
         this._send(command);
     },
 
@@ -258,7 +258,7 @@ DM.provide('Player',
             case 'seeking': this.seeking = true; this.currentTime = parseFloat(event.time); break;
             case 'seeked': this.seeking = false; this.currentTime = parseFloat(event.time); break;
             case 'fullscreenchange': this.fullscreen = DM.parseBool(event.fullscreen); break;
-            case 'volumechange': this.volume = parseFloat(event.volume); break;
+            case 'volumechange': this.volume = parseFloat(event.volume); this.muted = DM.parseBool(event.muted); break;
             case 'playing':
             case 'play': this.paused = false; break;
             case 'ended': this.ended = true; break; // no break, also set paused
