@@ -74,7 +74,7 @@ DM.provide('Player',
 
     api: function(command, arg)
     {
-        if (arg) command += '=' + arg;
+        if(typeof arg !== 'undefined') command += '=' + arg;
         this._send(command);
     },
 
