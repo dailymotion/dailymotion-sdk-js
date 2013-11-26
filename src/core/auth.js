@@ -109,6 +109,21 @@ DM.provide('Auth',
     _receivedSession: null,
 
     /**
+     * If SDK is loaded on DM's site, use current site's session
+     */
+    loadSiteSession: function()
+    {
+        if (window.location.host.match(/dailymotion\.com$/))
+        {
+            var cookie = document.cookie.match(/\bsid=([a-f0-9]+)/);
+            if (cookie)
+            {
+                DM.Auth.setSession({'access_token': cookie[1]});
+            }
+        }
+    },
+
+    /**
      * Check if session info are present in the URL fragment
      *
      * @access private
@@ -336,4 +351,5 @@ DM.provide('Auth',
     }
 });
 
+DM.Auth.loadSiteSession();
 DM.Auth.readFragment();
