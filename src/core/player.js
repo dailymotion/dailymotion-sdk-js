@@ -95,6 +95,10 @@ DM.provide('Player',
             events: {}
         });
 
+        // see #5 : _domain.www should be protocol independent
+        // remove protocol from existing value to preserve backward compatibility
+        DM._domain.www = DM._domain.www.replace(/^https?\:/, '');
+
         var player = document.createElement("iframe");
         DM.Array.forEach(['id', 'style', 'class'], function(attr)
         {
@@ -157,7 +161,7 @@ DM.provide('Player',
 
             var handler = function(e)
             {
-                if (!e.origin || e.origin.indexOf(DM._domain.www) !== 0) return;
+                if (!e.origin || e.origin.indexOf(location.protocol + DM._domain.www) !== 0) return;
                 var event = DM.QS.decode(e.data);
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
@@ -208,7 +212,7 @@ DM.provide('Player',
         switch (DM.Player.API_MODE)
         {
             case 'postMessage':
-                this.contentWindow.postMessage(command, DM._domain.www);
+                this.contentWindow.postMessage(command, location.protocol + DM._domain.www);
                 break;
 
             case 'xdcom':
