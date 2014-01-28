@@ -44,6 +44,7 @@ DM.provide('Player',
 {
     _INSTANCES: {},
     _INTERVAL_ID: null,
+    _PROTOCOL: null,
     API_MODE: null,
     EVENT_HANDLERS: {},
 
@@ -98,6 +99,7 @@ DM.provide('Player',
         // see #5 : _domain.www should be protocol independent
         // remove protocol from existing value to preserve backward compatibility
         DM._domain.www = DM._domain.www.replace(/^https?\:/, '');
+        DM.Player._PROTOCOL = (window.location && /^https?:$/.test(window.location.protocol)) ? window.location.protocol : 'http:';
 
         var player = document.createElement("iframe");
         DM.Array.forEach(['id', 'style', 'class'], function(attr)
@@ -142,7 +144,7 @@ DM.provide('Player',
             params.xdcomId = DM.Player.xdcomChannel.connectionId;
         }
         this.id = params.id = this.id ? this.id : DM.guid();
-        this.src = DM._domain.www + "/embed" + (video ? "/video/" + video : "") + '?' + DM.QS.encode(params);
+        this.src = DM.Player._PROTOCOL + DM._domain.www + "/embed" + (video ? "/video/" + video : "") + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
         {
             DM.Player._INSTANCES[this.id] = this;
@@ -161,7 +163,7 @@ DM.provide('Player',
 
             var handler = function(e)
             {
-                if (!e.origin || e.origin.indexOf(location.protocol + DM._domain.www) !== 0) return;
+                if (!e.origin || e.origin.indexOf(DM.Player._PROTOCOL + DM._domain.www) !== 0) return;
                 var event = DM.QS.decode(e.data);
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
@@ -212,7 +214,7 @@ DM.provide('Player',
         switch (DM.Player.API_MODE)
         {
             case 'postMessage':
-                this.contentWindow.postMessage(command, location.protocol + DM._domain.www);
+                this.contentWindow.postMessage(command, DM.Player._PROTOCOL + DM._domain.www);
                 break;
 
             case 'xdcom':
