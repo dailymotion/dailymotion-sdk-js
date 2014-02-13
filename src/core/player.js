@@ -108,7 +108,6 @@ DM.provide('Player',
             var val = element.getAttribute(attr);
             if (val) player.setAttribute(attr, val);
         });
-        element.parentNode.replaceChild(player, element);
         player.setAttribute("frameborder", "0");
         player.setAttribute("allowfullscreen", "true");
         player.setAttribute("webkitallowfullscreen", "true");
@@ -117,6 +116,7 @@ DM.provide('Player',
         player.type = "text/html";
         player.width = options.width;
         player.height = options.height;
+        element.parentNode.replaceChild(player, element);
 
         DM.copy(player, DM.Player);
 
