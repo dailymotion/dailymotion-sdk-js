@@ -61,6 +61,7 @@ DM.provide('Player',
     volume: 1,
     paused: true,
     fullscreen: false,
+    rebuffering: false,
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -271,6 +272,7 @@ DM.provide('Player',
             case 'ended':
             case 'pause': this.paused = true; break;
             case 'error': this.error = {code: event.code, title: event.title, message: event.message}; break;
+            case 'rebuffer': this.rebuffering = DM.parseBool(event.rebuffering); break;
         }
 
         this._dispatch(event.event);
