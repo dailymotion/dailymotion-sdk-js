@@ -63,7 +63,7 @@ DM.provide('',
             height = 420,
             left = parseInt(screenX + ((outerWidth - width) / 2), 10),
             top = parseInt(screenY + ((outerHeight - height) / 2.5), 10),
-            features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=yes';
+            features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',status,scrollbars=yes';
 
         opts = DM.copy(opts || {},
         {
