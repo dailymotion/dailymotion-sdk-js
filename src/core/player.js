@@ -147,6 +147,10 @@ DM.provide('Player',
         {
             params.xdcomId = DM.Player.xdcomChannel.connectionId;
         }
+        if (DM._apiKey)
+        {
+            params.apiKey = DM._apiKey;
+        }
         this.id = params.id = this.id ? this.id : DM.guid();
         this.src = DM.Player._PROTOCOL + DM._domain.www + "/embed" + (video ? "/video/" + video : "") + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
