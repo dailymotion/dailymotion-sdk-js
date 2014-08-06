@@ -86,9 +86,10 @@ DM.provide('ApiServer',
             next = args.shift(),
             method,
             params,
-            cb;
+            cb,
+            queue = null;
 
-        while (next)
+        while (typeof next !== 'undefined')
         {
             var type = typeof next;
             if (type === 'string' && !method)
@@ -103,6 +104,10 @@ DM.provide('ApiServer',
             {
                 params = next;
             }
+            else if (type === 'boolean' && queue === null)
+            {
+                queue = next;
+            }
             else
             {
                 DM.log('Invalid argument passed to DM.api(): ' + next);
@@ -113,6 +118,7 @@ DM.provide('ApiServer',
 
         method = method || 'get';
         params = params || {};
+        queue = queue === null ? true : queue;
 
         // remove prefix slash if one is given, as it's already in the base url
         if (path[0] === '/')
@@ -126,10 +132,10 @@ DM.provide('ApiServer',
             return;
         }
 
-        DM.ApiServer.transport(path, method, params, cb);
+        DM.ApiServer.transport(path, method, params, cb, queue);
     },
 
-    transport: function(path, method, params, cb)
+    transport: function(path, method, params, cb, queue)
     {
         try
         {
@@ -143,7 +149,7 @@ DM.provide('ApiServer',
             DM.ApiServer.type = 'jsonp';
         }
 
-        DM.ApiServer.transport(path, method, params, cb);
+        DM.ApiServer.transport(path, method, params, cb, queue);
     },
 
     /**
@@ -213,10 +219,18 @@ DM.provide('ApiServer',
      * @param params {Object}   the parameters for the query
      * @param cb     {Function} the callback function to handle the response
      */
-    ajax: function(path, method, params, cb)
+    ajax: function(path, method, params, cb, queue)
     {
-        DM.ApiServer._calls.push({path: path, method: method, params: params, cb: cb});
-        DM.ApiServer.ajaxHandleQueue();
+        var call = {path: path, method: method, params: params, cb: cb};
+        if(queue)
+        {
+            DM.ApiServer._calls.push(call);
+            DM.ApiServer.ajaxHandleQueue();
+        }
+        else
+        {
+            DM.ApiServer.performCalls([call]);
+        }
     },
 
     ajaxHandleQueue: function()
@@ -248,7 +262,7 @@ DM.provide('ApiServer',
         var multicall = [],
             endpoint = DM._domain.api;
 
-        for (var i = 0, l = DM.ApiServer._calls.length; i < l; i++)
+        for (var i = 0, l = calls.length; i < l; i++)
         {
             var call = calls[i];
             multicall.push
