@@ -40,6 +40,9 @@ input[type=button]:hover {background: #efefef}
 <span style="float: right">Platform: <script>document.write(navigator.platform)</script></span>
 </div>
 <div>
+<input type=button value=quality prompt="Quality" default=240>
+</div>
+<div>
 <input type=button value=toggle-mute>
 <input type=button value=mute>
 <input type=button value=unmute>
@@ -67,7 +70,7 @@ Status: <span id="status">unknown</span>
 //DM.XDCom._swfPath = '../xdcom.swf'
 
 var params = {html: "0"},
-    video = 'x6q96t',
+    video = 'xwr14q',
     player = DM.player($('#player').get(0), {video: video, width: '100%', height: '100%', params: params});
 
 $('input[name=html]:checkbox').change(function()
@@ -104,7 +107,7 @@ $('input[type=button]').click(function()
     $('<li class=out>&lt;- ' + cmd + (arg ? '=' + arg : '') + '</li>').prependTo('#console');
     $('#player').get(0).api(cmd, arg);
 });
-$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
+$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange availablequalities qualitychange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
 {
     var data = {}, player = e.target;
     switch (e.type)
@@ -133,6 +136,12 @@ $(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata tim
         case 'volumechange':
             data['volume'] = player.volume;
             data['muted'] = player.muted;
+            break;
+        case 'availablequalities':
+            data['qualities'] = player.qualities;
+            break;
+        case 'qualitychange':
+            data['quality'] = player.quality;
             break;
 
         case 'error':
