@@ -141,7 +141,7 @@ $(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata tim
     }
 
     if ($.inArray(e.type, ['play', 'playing', 'pause', 'ad_play', 'ad_pause']) !== -1) $('#status').html(e.type);
-    var line = $('<li class=in>-&gt; ' + e.type + ' ' + ($.param(data).replace(/&/g, ' ')) + '</li>').prependTo('#console');
+    var line = $('<li class=in>-&gt; ' + e.type + ' ' + JSON.stringify(data) + '</li>').prependTo('#console');
     if ($.inArray(e.type, ['timeupdate', 'progress', 'ad_timeupdate']) !== -1) line.addClass('minor');
     if (e.type == 'error') line.addClass('fatal');
 });
