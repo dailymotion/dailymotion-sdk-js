@@ -69,14 +69,26 @@ DM.provide('QS',
             params = {},
             parts  = str.split('&'),
             i,
-            pair;
+            pair,
+            key,
+            val;
 
         for (i = 0; i < parts.length; i++)
         {
             pair = parts[i].split('=', 2);
             if (pair && pair[0])
             {
-                params[decode(pair[0])] = pair[1] ? decode(pair[1].replace(/\+/g, '%20')) : '';
+                key = decode(pair[0]);
+                val = pair[1] ? decode(pair[1].replace(/\+/g, '%20')) : '';
+                if (/\[\]$/.test(key))
+                {
+                    key = key.slice(0,-2);
+                    (params[key] ? params[key] : params[key] = []).push(val);
+                }
+                else
+                {
+                    params[key] = val;
+                }
             }
         }
 
