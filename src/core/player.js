@@ -266,16 +266,21 @@ DM.provide('Player',
         {
             case 'apiready': if (this.apiReady) return /* dispatch only once */; else this.apiReady = true; break;
             case 'loadedmetadata': this.error = null; this.ended = false; break;
-            case 'timeupdate': this.currentTime = parseFloat(event.time); break;
+            case 'timeupdate': // no break statement here
+            case 'ad_timeupdate': this.currentTime = parseFloat(event.time); break;
             case 'progress': this.bufferedTime = parseFloat(event.time); break;
             case 'durationchange': this.duration = parseFloat(event.duration); break;
             case 'seeking': this.seeking = true; this.currentTime = parseFloat(event.time); break;
             case 'seeked': this.seeking = false; this.currentTime = parseFloat(event.time); break;
             case 'fullscreenchange': this.fullscreen = DM.parseBool(event.fullscreen); break;
             case 'volumechange': this.volume = parseFloat(event.volume); this.muted = DM.parseBool(event.muted); break;
+            case 'ad_start':
+            case 'ad_play':
             case 'playing':
             case 'play': this.paused = false; break;
             case 'ended': this.ended = true; break; // no break, also set paused
+            case 'ad_pause':
+            case 'ad_end':
             case 'ended':
             case 'pause': this.paused = true; break;
             case 'error': this.error = {code: event.code, title: event.title, message: event.message}; break;
