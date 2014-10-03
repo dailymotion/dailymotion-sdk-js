@@ -78,6 +78,7 @@ DM.provide('ApiServer',
      * @param method {String}   the http method
      * @param params {Object}   the parameters for the query
      * @param cb     {Function} the callback function to handle the response
+     * @param immediate {Boolean} the trigger for an immediate call if needed
      */
     call: function()
     {
@@ -87,7 +88,7 @@ DM.provide('ApiServer',
             method,
             params,
             cb,
-            queue = null;
+            immediate = false;
 
         while (typeof next !== 'undefined')
         {
@@ -102,11 +103,11 @@ DM.provide('ApiServer',
             }
             else if (type === 'object' && !params)
             {
-                params = next;
+                params = DM.ApiServer.formatCallParams(next);
             }
-            else if (type === 'boolean' && queue === null)
+            else if (type === 'boolean' && !immediate)
             {
-                queue = next;
+                immediate = next;
             }
             else
             {
@@ -118,7 +119,6 @@ DM.provide('ApiServer',
 
         method = method || 'get';
         params = params || {};
-        queue = queue === null ? true : queue;
 
         // remove prefix slash if one is given, as it's already in the base url
         if (path[0] === '/')
@@ -132,13 +132,114 @@ DM.provide('ApiServer',
             return;
         }
 
-        DM.ApiServer.transport(path, method, params, cb, queue);
+        DM.ApiServer.transport(path, method, params, cb, immediate);
     },
 
-    transport: function(path, method, params, cb, queue)
+    /**
+     * Format some params for the API.
+     *
+     * All params will be taken as is except params.fields and params.subrequest.
+     * params.fields is stringified if an array is provided to support nested request
+     * params.subrequest is stringified if an object is provided and added to params.fields
+     *
+     *  Ex:
+     *      params.fields = ['id', 'title', 'description'] becomes params.fields = 'id,title,description'
+     *  Ex:
+     *      params.subrequest = {
+     *        'videos': {
+     *            fields: ['thumbnail_120_url', 'title'],
+     *            limit: 4
+     *        }
+     *    is added to params.fields like this:
+     *        params.fields = 'id,title,description,videos.fields(thumbnail_120_url,title).limit(4)'
+     *
+     * @access private
+     * @param params {Object}   the call parameters
+     */
+    formatCallParams: function(params)
+    {
+        var subRequests = params.subrequests,
+            subRequestsParams = [],
+            subRequestsStr = '';
+
+        if (subRequests)
+        {
+            var subRequestsType = DM.type(subRequests);
+
+            if (subRequestsType == 'object')
+            {
+                for (fieldName in subRequests)
+                {
+                    var subRequest = subRequests[fieldName],
+                        subRequestParams = [];
+
+                    subRequestParams.push(fieldName + '.fields(' + (subRequest.fields || []).join(',') + ')');
+
+                    delete(subRequest.fields);
+
+                    for (subRequestParam in subRequest)
+                    {
+                        subRequestParams.push(subRequestParam + '(' + subRequest[subRequestParam] + ')');
+                    }
+
+                    if (subRequestParams.length)
+                    {
+                        subRequestsParams.push(subRequestParams.join('.'));
+                    }
+                }
+            }
+            else
+            {
+                throw new Error('Unexpected type "' + subRequestsType + '" for "subrequests" parameter. Expected type: object');
+            }
+
+            delete(params.subrequests);
+        }
+
+        if (subRequestsParams.length)
+        {
+            subRequestsStr = subRequestsParams.join(',');
+        }
+
+        // Fix for nested request in multicall
+        if (params.fields)
+        {
+            var fieldsType = DM.type(params.fields);
+
+            if (fieldsType == 'array')
+            {
+                params.fields.push(subRequestsStr);
+                params.fields = params.fields.join(',');
+            }
+            else if (fieldsType == 'string')
+            {
+                if (params.fields.length)
+                {
+                    params.fields += ',' + subRequestsStr;
+                }
+                else
+                {
+                    params.fields = subRequestsStr;
+                }
+            }
+            else
+            {
+                throw new Error('Unexpected type "' + fieldsType + '"  for "fields" parameter, Allowed types: array, string');
+            }
+        }
+        else
+        {
+            params.fields = subRequestsStr;
+        }
+
+        return params;
+    },
+
+    transport: function(path, method, params, cb, immediate)
     {
         try
         {
+            // throw new Error();
             DM.ApiServer.xhr();
             DM.ApiServer.transport = DM.ApiServer.ajax;
             DM.ApiServer.type = 'ajax';
@@ -149,7 +250,7 @@ DM.provide('ApiServer',
             DM.ApiServer.type = 'jsonp';
         }
 
-        DM.ApiServer.transport(path, method, params, cb, queue);
+        DM.ApiServer.transport(path, method, params, cb, immediate);
     },
 
     /**
@@ -164,32 +265,23 @@ DM.provide('ApiServer',
     jsonp: function(path, method, params, cb)
     {
         var g = DM.guid(),
-            script = document.createElement('script');
+            script = document.createElement('script'),
+            callTimeout,
+            timeout = 5; // 5 secs
 
         // jsonp needs method overrides as the request itself is always a GET
         params.method = method;
         params.callback = 'DM.ApiServer._callbacks.' + g;
 
-        for (var param in params)
-        {
-            if (params.hasOwnProperty(param))
-            {
-                if (DM.type(params[param]) == 'array')
-                {
-                    params[param] = params[param].join(',');
-                }
-            }
-        }
+        var session = DM.getSession();
 
         // add oauth token if we have one
-        if (DM.getSession)
+        if (session && session.access_token && !params.access_token)
         {
-            var session = DM.getSession();
-            if (session && session.access_token && !params.access_token)
-            {
-                params.access_token = session.access_token;
-            }
+            params.access_token = session.access_token;
         }
+
+        params = DM.Array.flatten(params);
 
         var url = (DM._domain.api + '/' + path + (path.indexOf('?') > -1 ? '&' : '?') + DM.QS.encode(params));
         if (url.length > 2000)
@@ -204,10 +296,22 @@ DM.provide('ApiServer',
             delete DM.ApiServer._callbacks[g];
             script.src = null;
             script.parentNode.removeChild(script);
+            if (callTimeout)
+            {
+                clearTimeout(callTimeout);
+                callTimeout = null;
+            }
         };
 
+        script.async = true;
         script.src = url;
         document.getElementsByTagName('head')[0].appendChild(script);
+
+        // Only way to report error about script loading - we use a timeout at 5 secs.
+        callTimeout = setTimeout(function()
+        {
+            DM.ApiServer._callbacks[g]({error: {code: 500, message: 'The request has timed out', type: 'transport_error'}});
+        }, timeout * 1000);
     },
 
     /**
@@ -218,18 +322,20 @@ DM.provide('ApiServer',
      * @param method {String}   the http method
      * @param params {Object}   the parameters for the query
      * @param cb     {Function} the callback function to handle the response
+     * @param immediate {Boolean} the trigger for an immediate call if needed
      */
-    ajax: function(path, method, params, cb, queue)
+    ajax: function(path, method, params, cb, immediate)
     {
         var call = {path: path, method: method, params: params, cb: cb};
-        if(queue)
+
+        if(!immediate)
         {
             DM.ApiServer._calls.push(call);
             DM.ApiServer.ajaxHandleQueue();
         }
         else
         {
-            DM.ApiServer.performCalls([call]);
+            DM.ApiServer.performSimpleCall(path, method, params, cb);
         }
     },
 
@@ -239,7 +345,7 @@ DM.provide('ApiServer',
         {
             DM.ApiServer._callTimeout = setTimeout(function()
             {
-                DM.ApiServer.performCalls(DM.ApiServer._calls);
+                DM.ApiServer.performMultipleCalls(DM.ApiServer._calls);
                 DM.ApiServer._calls = [];
                 delete DM.ApiServer._callTimeout;
             }, 0);
@@ -252,12 +358,56 @@ DM.provide('ApiServer',
                 clearTimeout(DM.ApiServer._callTimeout);
                 delete DM.ApiServer._callTimeout;
             }
-            DM.ApiServer.performCalls(DM.ApiServer._calls);
+            DM.ApiServer.performMultipleCalls(DM.ApiServer._calls);
             DM.ApiServer._calls = [];
         }
     },
 
-    performCalls: function(calls)
+    performSimpleCall: function(path, method, params, cb)
+    {
+        var session = DM.getSession();
+        // add oauth token if we have one
+        if (session && session.access_token && !params.access_token)
+        {
+            params.access_token = session.access_token;
+        }
+
+        params = DM.Array.flatten(params);
+
+        var url = (DM._domain.api + '/' + path + (path.indexOf('?') > -1 ? '&' : '?') + DM.QS.encode(params));
+
+        var xhr = DM.ApiServer.xhr();
+        xhr.open(method, url);
+        // Lie on Content-Type to prevent from CORS preflight check
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send();
+
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == 4)
+            {
+                var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}},
+                    response;
+
+                if (xhr.status == 200)
+                {
+                    response = DM.JSON.parse(xhr.responseText);
+                }
+
+                if (DM.type(response) != 'object')
+                {
+                    response = globalError;
+                    DM.error('Cannot parse call response data ' + xhr.responseText);
+                }
+
+                if (cb)
+                {
+                    cb(response);
+                }
+            }
+        };
+    },
+    performMultipleCalls: function(calls)
     {
         var multicall = [],
             endpoint = DM._domain.api;
@@ -273,14 +423,11 @@ DM.provide('ApiServer',
             });
         }
 
+        var session = DM.getSession();
         // add oauth token if we have one
-        if (DM.getSession)
+        if (session && session.access_token)
         {
-            var session = DM.getSession();
-            if (session && session.access_token)
-            {
-                endpoint += '?access_token=' + encodeURIComponent(session.access_token);
-            }
+            endpoint += '?access_token=' + encodeURIComponent(session.access_token);
         }
 
         var xhr = DM.ApiServer.xhr();
@@ -293,9 +440,13 @@ DM.provide('ApiServer',
         {
             if (xhr.readyState == 4)
             {
-                var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}};
+                var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}},
+                    responses;
 
-                var responses = DM.JSON.parse(xhr.responseText);
+                if (xhr.status == 200)
+                {
+                    responses = DM.JSON.parse(xhr.responseText);
+                }
 
                 if (DM.type(responses) == 'array')
                 {
@@ -335,7 +486,7 @@ DM.provide('ApiServer',
                 }
                 else
                 {
-                    DM.error('Cannot parse multicall response: ' + e + ' response data ' + xhr.responseText);
+                    DM.error('Cannot parse multicall response data ' + xhr.responseText);
                 }
 
                 DM.Array.forEach(calls, function(call)
