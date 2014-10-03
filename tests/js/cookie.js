@@ -33,7 +33,6 @@ test('set a cookie, load and delete it', function()
         answer: 42
     });
     ok(document.cookie.match('dms_' + cookieApiKey), 'found in document.cookie');
-    console.log(DM.Cookie.load());
     ok(DM.Cookie.load().answer == 42, 'found the answer');
     DM.Cookie.clear();
     ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
