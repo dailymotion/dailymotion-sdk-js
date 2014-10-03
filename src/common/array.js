@@ -77,6 +77,27 @@ DM.provide('Array',
     },
 
     /**
+     * flatten arrays of strings in obj to one string concatenated with comma.
+     *
+     * @param arr {Object} Object to flatten.
+     * @return {Object} Flattened object.
+     */
+    flatten: function(obj)
+    {
+        for (var param in obj)
+        {
+            if (obj.hasOwnProperty(param))
+            {
+                if (DM.type(obj[param]) == 'array')
+                {
+                    obj[param] = obj[param].join(',');
+                }
+            }
+        }
+        return obj;
+    },
+
+    /**
      * Create an new array from the given array and a filter function.
      *
      * @param arr {Array} Source array.
