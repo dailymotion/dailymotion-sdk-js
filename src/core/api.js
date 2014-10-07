@@ -227,12 +227,20 @@ DM.provide('ApiServer',
                 throw new Error('Unexpected type "' + fieldsType + '"  for "fields" parameter, Allowed types: array, string');
             }
         }
-        else
+        else if (subRequestsStr)
         {
             params.fields = subRequestsStr;
         }
 
         return params;
+    },
+
+    getSimpleCallURL: function(path, params)
+    {
+        var encodedParams = DM.QS.encode(params),
+            urlQueryParams = encodedParams.length ? (path.indexOf('?') > -1 ? '&' : '?') + encodedParams : '';
+
+        return DM._domain.api + '/' + path + urlQueryParams;
     },
 
     transport: function(path, method, params, cb, immediate)
@@ -283,7 +291,8 @@ DM.provide('ApiServer',
 
         params = DM.Array.flatten(params);
 
-        var url = (DM._domain.api + '/' + path + (path.indexOf('?') > -1 ? '&' : '?') + DM.QS.encode(params));
+        var url = DM.ApiServer.getSimpleCallURL(path, params);
+
         if (url.length > 2000)
         {
             throw new Error('JSONP only support a maximum of 2000 bytes of input.');
@@ -374,7 +383,7 @@ DM.provide('ApiServer',
 
         params = DM.Array.flatten(params);
 
-        var url = (DM._domain.api + '/' + path + (path.indexOf('?') > -1 ? '&' : '?') + DM.QS.encode(params));
+        var url = DM.ApiServer.getSimpleCallURL(path, params);
 
         var xhr = DM.ApiServer.xhr();
         xhr.open(method, url);
