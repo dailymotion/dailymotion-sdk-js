@@ -398,9 +398,12 @@ DM.provide('ApiServer',
                 var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}},
                     response;
 
-                if (xhr.status == 200)
+                if (xhr.status)
                 {
-                    response = DM.JSON.parse(xhr.responseText);
+                    try
+                    {
+                        response = DM.JSON.parse(xhr.responseText);
+                    } catch(e) {}
                 }
 
                 if (DM.type(response) != 'object')
@@ -452,12 +455,17 @@ DM.provide('ApiServer',
                 var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}},
                     responses;
 
-                if (xhr.status == 200)
+                if (xhr.status)
                 {
-                    responses = DM.JSON.parse(xhr.responseText);
+                    try
+                    {
+                        responses = DM.JSON.parse(xhr.responseText);
+                    } catch(e) {}
                 }
 
-                if (DM.type(responses) == 'array')
+                var responseType = DM.type(responses);
+
+                if (responseType == 'array')
                 {
                     for (var i = 0, l = responses.length; i < l; i++)
                     {
@@ -488,7 +496,7 @@ DM.provide('ApiServer',
                         calls[response.id] = null;
                     }
                 }
-                else if (DM.type(responses) == 'object' && 'error' in responses)
+                else if (responseType == 'object' && 'error' in responses)
                 {
                     // Global error
                     globalError = responses;
