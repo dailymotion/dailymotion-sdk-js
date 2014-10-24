@@ -252,6 +252,7 @@ if (!window.DM)
                     var name = classes[i];
                     DM._class2type['[object ' + name + ']'] = name.toLowerCase();
                 }
+                DM._class2type['[object Undefined]'] = 'undefined';
             }
             return obj === null ? String(obj) : DM._class2type[Object.prototype.toString.call(obj)] || "object";
         }
