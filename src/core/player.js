@@ -146,7 +146,13 @@ DM.provide('Player',
         });
         params = typeof params == "object" ? params : {};
         params.api = DM.Player.API_MODE;
-        params.origin = location.origin;
+        
+        // Support for old browser without location.origin
+        if (location.origin)
+            params.origin = location.origin;
+        else 
+            params.origin = '*';
+
         if (DM.Player.API_MODE == 'xdcom')
         {
             params.xdcomId = DM.Player.xdcomChannel.connectionId;
