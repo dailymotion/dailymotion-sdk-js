@@ -90,7 +90,7 @@ DM.provide('',
 
     logout: function(cb)
     {
-        DM.api('/logout', cb);
+        DM.ApiServer.transport(DM._domain.oauthLogoutUrl, 'get', {}, cb, true);
         DM.Auth.setSession(null, 'notConnected');
     }
 });
