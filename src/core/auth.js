@@ -90,8 +90,35 @@ DM.provide('',
 
     logout: function(cb)
     {
-        DM.api('/logout', cb);
-        DM.Auth.setSession(null, 'notConnected');
+        var endpoint = DM._domain.oauthLogoutUrl;
+
+        var session = DM.getSession();
+        if (session && session.access_token)
+        {
+            endpoint += '?access_token=' + encodeURIComponent(session.access_token);
+        }
+
+        var xhr = DM.ApiServer.xhr();
+        xhr.open('GET', endpoint);
+        xhr.send();
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == 4)
+            {
+                var response = xhr.responseText;
+
+                if (response == '[]')
+                {
+                    // {} is provided to cb to maintain retro-compat with previous result of https://api.dailymotion.com/logout
+                    cb({});
+                    DM.Auth.setSession(null, 'notConnected');
+                }
+                else
+                {
+                    cb(response);
+                }
+            }
+        };
     }
 });
 

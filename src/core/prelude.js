@@ -76,6 +76,7 @@ if (!window.DM)
         _domain:
         {
             api: 'https://api.dailymotion.com',
+            oauthLogoutUrl: 'https://www.dailymotion.com/oauth/logout',
             oauthAuthorizeUrl: 'https://www.dailymotion.com/oauth/authorize',
             www: '//www.dailymotion.com',
             cdn: '//api.dmcdn.net'
