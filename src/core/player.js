@@ -97,6 +97,17 @@ DM.provide('Player',
             events: {}
         });
 
+        // Look at query-string for a "dm:params" parameter, and pass them to the player
+        if (location.search.length > 1 && location.search.indexOf('dm:params') !== -1)
+        {
+            var params = DM.QS.decode(location.search.substr(1));
+            if ('dm:params' in params)
+            {
+                // Decode the double encoded params
+                options.params = DM.copy(DM.QS.decode(params['dm:params']), options.params);
+            }
+        }
+
         // see #5 : _domain.www should be protocol independent
         // remove protocol from existing value to preserve backward compatibility
         DM._domain.www = DM._domain.www.replace(/^https?\:/, '');
