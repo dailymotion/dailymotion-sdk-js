@@ -77,20 +77,20 @@ DM.provide('',
 
         if (opts.display === 'popup')
         {
-            var win = window.open(DM._domain.oauthAuthorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
+            var win = window.open(DM._oauth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
 
             DM.Auth._active[opts.state] = {cb: cb ? cb : function() {}, win: win};
             DM.Auth._popupMonitor();
         }
         else
         {
-            location.href = DM._domain.oauthAuthorizeUrl + '?' + DM.QS.encode(opts);
+            location.href = DM._oauth.authorizeUrl + '?' + DM.QS.encode(opts);
         }
     },
 
     logout: function(cb)
     {
-        var endpoint = DM._domain.oauthLogoutUrl;
+        var endpoint = DM._oauth.logoutUrl;
 
         var session = DM.getSession();
         if (session && session.access_token)
