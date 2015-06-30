@@ -64,6 +64,8 @@ DM.provide('Player',
     rebuffering: false,
     qualities: [],
     quality: undefined,
+    subtitles: [],
+    subtitle: undefined,
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -74,6 +76,7 @@ DM.provide('Player',
     toggleMuted: function() {this.api('toggle-muted');},
     setVolume: function(volume) {this.api('volume', volume);},
     setQuality: function(quality) {this.api('quality', quality);},
+    setSubtitle: function(subtitle) {this.api('subtitle', subtitle);},
     setFullscreen: function(fullscreen) {this.api('fullscreen', fullscreen);},
     watchOnSite: function(muted) {this.api('watch-on-site');},
 
@@ -308,6 +311,8 @@ DM.provide('Player',
             case 'rebuffer': this.rebuffering = DM.parseBool(event.rebuffering); break;
             case 'availablequalities': this.qualities = event.qualities; break;
             case 'qualitychange': this.quality = event.quality; break;
+            case 'availablesubtitles': this.subtitles = event.subtitles; break;
+            case 'subtitlechange': this.subtitle = event.subtitle; break;
         }
 
         this._dispatch(event.event);
