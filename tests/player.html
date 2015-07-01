@@ -108,7 +108,7 @@ $('input[type=button]').click(function()
     $('<li class=out>&lt;- ' + cmd + (arg ? '=' + arg : '') + '</li>').prependTo('#console');
     $('#player').get(0).api(cmd, arg);
 });
-$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange availablequalities qualitychange availablesubtitles subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
+$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
 {
     var data = {}, player = e.target;
     switch (e.type)
@@ -138,13 +138,13 @@ $(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata tim
             data['volume'] = player.volume;
             data['muted'] = player.muted;
             break;
-        case 'availablequalities':
+        case 'qualitiesavailable':
             data['qualities'] = player.qualities;
             break;
         case 'qualitychange':
             data['quality'] = player.quality;
             break;
-        case 'availablesubtitles':
+        case 'subtitlesavailable':
             data['subtitles'] = player.subtitles;
             break;
         case 'subtitlechange':

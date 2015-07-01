@@ -309,9 +309,9 @@ DM.provide('Player',
             case 'pause': this.paused = true; break;
             case 'error': this.error = {code: event.code, title: event.title, message: event.message}; break;
             case 'rebuffer': this.rebuffering = DM.parseBool(event.rebuffering); break;
-            case 'availablequalities': this.qualities = event.qualities; break;
+            case 'qualitiesavailable': this.qualities = event.qualities; break;
             case 'qualitychange': this.quality = event.quality; break;
-            case 'availablesubtitles': this.subtitles = event.subtitles; break;
+            case 'subtitlesavailable': this.subtitles = event.subtitles; break;
             case 'subtitlechange': this.subtitle = event.subtitle; break;
         }
 
