@@ -91,23 +91,18 @@ DM.provide('',
     logout: function(cb)
     {
         var endpoint = DM._oauth.logoutUrl;
-
         var session = DM.getSession();
+        var parameters = [];
+        var scriptID = 'dm_l_o_sc';
+        var callbackName;
+
         if (session && session.access_token)
         {
-            endpoint += '?access_token=' + encodeURIComponent(session.access_token);
-        }
-
-        var xhr = DM.ApiServer.xhr();
-        xhr.open('GET', endpoint);
-        xhr.send();
-        xhr.onreadystatechange = function()
-        {
-            if (xhr.readyState == 4)
+            parameters.push('access_token=' + encodeURIComponent(session.access_token));
+            callbackName = session.access_token + '_logout';
+            window[callbackName] = function(jsonResponse)
             {
-                var response = xhr.responseText;
-
-                if (response == '[]')
+                if (DM.type(jsonResponse) == 'array' && !jsonResponse.length)
                 {
                     // {} is provided to cb to maintain retro-compat with previous result of https://api.dailymotion.com/logout
                     cb({});
@@ -115,10 +110,24 @@ DM.provide('',
                 }
                 else
                 {
-                    cb(response);
+                    cb(jsonResponse);
                 }
-            }
-        };
+
+                delete(window[callbackName]);
+            };
+            parameters.push('callback=' + callbackName);
+        }
+
+        var sc = document.getElementById(scriptID);
+        if (!sc)
+        {
+            sc = document.createElement('script');
+            sc.type = 'application/javascript';
+            sc.id = scriptID;
+            document.body.appendChild(sc);
+        }
+
+        sc.src = endpoint + (parameters.length ? ('?' + parameters.join('&')) : '');
     }
 });
 
