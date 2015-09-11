@@ -99,7 +99,7 @@ DM.provide('',
         if (session && session.access_token)
         {
             parameters.push('access_token=' + encodeURIComponent(session.access_token));
-            callbackName = session.access_token + '_logout';
+            callbackName = '_' + session.access_token + '_logout';
             window[callbackName] = function(jsonResponse)
             {
                 if (DM.type(jsonResponse) == 'array' && !jsonResponse.length)
