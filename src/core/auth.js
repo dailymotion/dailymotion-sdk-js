@@ -77,21 +77,57 @@ DM.provide('',
 
         if (opts.display === 'popup')
         {
-            var win = window.open(DM._domain.oauthAuthorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
+            var win = window.open(DM._oauth.authorizeUrl + '?' + DM.QS.encode(opts), 'dmauth', features);
 
             DM.Auth._active[opts.state] = {cb: cb ? cb : function() {}, win: win};
             DM.Auth._popupMonitor();
         }
         else
         {
-            location.href = DM._domain.oauthAuthorizeUrl + '?' + DM.QS.encode(opts);
+            location.href = DM._oauth.authorizeUrl + '?' + DM.QS.encode(opts);
         }
     },
 
     logout: function(cb)
     {
-        DM.api('/logout', cb);
-        DM.Auth.setSession(null, 'notConnected');
+        var endpoint = DM._oauth.logoutUrl;
+        var session = DM.getSession();
+        var parameters = [];
+        var scriptID = 'dm_l_o_sc';
+        var callbackName;
+
+        if (session && session.access_token)
+        {
+            parameters.push('access_token=' + encodeURIComponent(session.access_token));
+            callbackName = '_' + session.access_token + '_logout';
+            window[callbackName] = function(jsonResponse)
+            {
+                if (DM.type(jsonResponse) == 'array' && !jsonResponse.length)
+                {
+                    // {} is provided to cb to maintain retro-compat with previous result of https://api.dailymotion.com/logout
+                    cb({});
+                    DM.Auth.setSession(null, 'notConnected');
+                }
+                else
+                {
+                    cb(jsonResponse);
+                }
+
+                delete(window[callbackName]);
+            };
+            parameters.push('callback=' + callbackName);
+        }
+
+        var sc = document.getElementById(scriptID);
+        if (!sc)
+        {
+            sc = document.createElement('script');
+            sc.type = 'application/javascript';
+            sc.id = scriptID;
+            document.body.appendChild(sc);
+        }
+
+        sc.src = endpoint + (parameters.length ? ('?' + parameters.join('&')) : '');
     }
 });
 
