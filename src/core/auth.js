@@ -119,14 +119,16 @@ DM.provide('',
         }
 
         var sc = document.getElementById(scriptID);
-        if (!sc)
+
+        if (sc)
         {
-            sc = document.createElement('script');
-            sc.type = 'application/javascript';
-            sc.id = scriptID;
-            document.body.appendChild(sc);
+            sc.parentNode.removeChild(sc);
         }
 
+        sc = document.createElement('script');
+        sc.type = 'text/javascript';
+        sc.id = scriptID;
+        document.body.appendChild(sc);
         sc.src = endpoint + (parameters.length ? ('?' + parameters.join('&')) : '');
     }
 });
