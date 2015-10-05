@@ -77,15 +77,14 @@ DM.provide('Cookie',
      */
     load: function()
     {
-        // note, we have the opening quote for the value in the regex, but do
-        // not have a closing quote. this is because the \b already handles it.
-        var cookie = decodeURIComponent(document.cookie).match('\\bdms_' + DM._apiKey + '="([^;]*)\\b'),
-            session;
+        var session = undefined;
+        var key = 'dms_' + DM._apiKey;
+        var cookie = Cookies.get(key);
 
         if (cookie)
         {
             // url encoded session stored as "sub-cookies"
-            session = DM.QS.decode(cookie[1]);
+            session = DM.QS.decode(cookie);
             // decodes as a string, convert to a number
             session.expires = parseInt(session.expires, 10);
             // capture base_domain for use when we need to clear
@@ -93,25 +92,6 @@ DM.provide('Cookie',
         }
 
         return session;
-    },
-
-    /**
-     * Helper function to set cookie value.
-     *
-     * @access private
-     * @param val    {String} the string value (should already be encoded)
-     * @param ts     {Number} a unix timestamp denoting expiry
-     * @param domain {String} optional domain for cookie
-     */
-    setRaw: function(val, ts, domain)
-    {
-        document.cookie = 'dms_' + DM._apiKey + '="' + val + '"'
-                        + (val && ts == 0 ? '' : '; expires=' + new Date(ts * 1000).toGMTString())
-                        + '; path=/'
-                        + (domain ? '; domain=.' + domain : '');
-
-        // capture domain for use when we need to clear
-        DM.Cookie._domain = domain;
     },
 
     /**
@@ -124,7 +104,17 @@ DM.provide('Cookie',
     {
         if (session)
         {
-            DM.Cookie.setRaw(DM.QS.encode(session), session.expires, session.base_domain);
+            var key = 'dms_' + DM._apiKey;
+            var value = DM.QS.encode(session);
+            var domain = document.domain === 'localhost' ? false : '.' + session.base_domain
+
+            var options = {
+              expires: new Date(session.expires * 1000).toGMTString(),
+              domain: domain
+            };
+
+            Cookies.set(key, value, options);
+            DM.Cookie._domain = domain;
         }
         else
         {
@@ -139,6 +129,12 @@ DM.provide('Cookie',
      */
     clear: function()
     {
-        DM.Cookie.setRaw('', 0, DM.Cookie._domain);
+        var key = 'dms_' + DM._apiKey;
+        var domain = document.domain === 'localhost' ? false : DM.Cookie._domain;
+        var options = {
+          domain: domain
+        };
+
+        Cookies.expire(key, options);
     }
 });
