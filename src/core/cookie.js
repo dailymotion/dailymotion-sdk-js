@@ -106,13 +106,15 @@ DM.provide('Cookie',
         {
             var key = 'dms_' + DM._apiKey;
             var value = DM.QS.encode(session);
+            var domain = document.domain === 'localhost' ? false : '.' + session.base_domain
 
             var options = {
-              expires: new Date(session.expires * 1000).toGMTString()
+              expires: new Date(session.expires * 1000).toGMTString(),
+              domain: domain
             };
 
             Cookies.set(key, value, options);
-            DM.Cookie._domain = session.base_domain;
+            DM.Cookie._domain = domain;
         }
         else
         {
@@ -128,6 +130,11 @@ DM.provide('Cookie',
     clear: function()
     {
         var key = 'dms_' + DM._apiKey;
-        Cookies.expire(key);
+        var domain = document.domain === 'localhost' ? false : DM.Cookie._domain;
+        var options = {
+          domain: domain
+        };
+
+        Cookies.expire(key, options);
     }
 });
