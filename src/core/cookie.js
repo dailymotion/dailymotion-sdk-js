@@ -105,10 +105,12 @@ DM.provide('Cookie',
      */
     setRaw: function(val, ts, domain)
     {
-        document.cookie = 'dms_' + DM._apiKey + '="' + val + '"'
-                        + (val && ts == 0 ? '' : '; expires=' + new Date(ts * 1000).toGMTString())
+        var safeValue = (val + '').replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent);
+        
+        document.cookie = 'dms_' + DM._apiKey + '="' + safeValue + '"'
+                        + (safeValue && ts == 0 ? '' : '; expires=' + new Date(ts * 1000).toGMTString())
                         + '; path=/'
-                        + (domain ? '; domain=.' + domain : '');
+                        + (domain && domain !== 'localhost' ? '; domain=.' + domain : '');
 
         // capture domain for use when we need to clear
         DM.Cookie._domain = domain;
