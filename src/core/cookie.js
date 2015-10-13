@@ -68,6 +68,41 @@ DM.provide('Cookie',
     {
         return DM.Cookie._enabled;
     },
+    
+    /**
+     * Return a cookie key value pair.
+     *
+     * @access private
+     * @returns {Object} with cookie key and value
+     */
+    getKeyValuePair: function(cookieStr) {
+        var separatorIndex = cookieStr.indexOf('=');
+
+        // IE omits the "=" when the cookie value is an empty string
+        separatorIndex = separatorIndex < 0 ? cookieStr.length : separatorIndex;
+
+        var key = cookieStr.substr(0, separatorIndex);
+        var value = cookieStr.substr(separatorIndex + 1);
+        var decodedKey;
+        var decodedValue;
+
+        try {
+          decodedKey = decodeURIComponent(key);
+        } catch(e) {
+          console.error('Could not decode cookie key: ' + key);
+        }
+
+        try {
+          decodedValue = decodeURIComponent(value);
+        } catch(e) {
+          console.error('Could not decode cookie value: ' + value);
+        }
+
+        return {
+          key: decodedKey,
+          value: decodedValue
+        };
+    },
 
     /**
      * Try loading the session from the Cookie.
@@ -77,15 +112,22 @@ DM.provide('Cookie',
      */
     load: function()
     {
-        // note, we have the opening quote for the value in the regex, but do
-        // not have a closing quote. this is because the \b already handles it.
-        var cookie = decodeURIComponent(document.cookie).match('\\bdms_' + DM._apiKey + '="([^;]*)\\b'),
-            session;
+        var cookiesArr = document.cookie.split('; ');
+        var dmCookie, session;
 
-        if (cookie)
-        {
+        cookiesArr.forEach(function(cookie) {
+            var keyValuePair = DM.Cookie.getKeyValuePair(cookie);
+
+            if(keyValuePair.key.match('dms_' + DM._apiKey)) {
+                // DM cookie's value has quotes around it, remove them
+                keyValuePair.value = keyValuePair.value.replace(/^"(.+(?="$))"$/, '$1');
+                dmCookie = keyValuePair;
+            }
+        });
+
+        if(dmCookie) {
             // url encoded session stored as "sub-cookies"
-            session = DM.QS.decode(cookie[1]);
+            session = DM.QS.decode(dmCookie.value);
             // decodes as a string, convert to a number
             session.expires = parseInt(session.expires, 10);
             // capture base_domain for use when we need to clear
@@ -105,10 +147,12 @@ DM.provide('Cookie',
      */
     setRaw: function(val, ts, domain)
     {
-        document.cookie = 'dms_' + DM._apiKey + '="' + val + '"'
-                        + (val && ts == 0 ? '' : '; expires=' + new Date(ts * 1000).toGMTString())
+        var safeValue = (val + '').replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent);
+        
+        document.cookie = 'dms_' + DM._apiKey + '="' + safeValue + '"'
+                        + (safeValue && ts == 0 ? '' : '; expires=' + new Date(ts * 1000).toGMTString())
                         + '; path=/'
-                        + (domain ? '; domain=.' + domain : '');
+                        + (domain && domain !== 'localhost' ? '; domain=.' + domain : '');
 
         // capture domain for use when we need to clear
         DM.Cookie._domain = domain;
