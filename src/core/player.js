@@ -16,7 +16,6 @@
  * @provides dm.player
  * @requires dm.prelude
  *           dm.qs
- *           dm.xdcom
  */
 
 /**
@@ -167,10 +166,6 @@ DM.provide('Player',
         else 
             params.origin = '*';
 
-        if (DM.Player.API_MODE == 'xdcom')
-        {
-            params.xdcomId = DM.Player.xdcomChannel.connectionId;
-        }
         if (DM._apiKey)
         {
             params.apiKey = DM._apiKey;
@@ -204,17 +199,6 @@ DM.provide('Player',
             if (window.addEventListener) window.addEventListener("message", handler, false);
             else if (window.attachEvent) window.attachEvent("onmessage", handler);
         }
-        else if(DM.XDCom.capable())
-        {
-            DM.Player.API_MODE = "xdcom";
-            DM.Player.xdcomChannel = DM.XDCom.createChannel(function(data)
-            {
-                var event = DM.QS.decode(data);
-                if (!event.id || !event.event) return;
-                var player = DM.$(event.id);
-                player._recvEvent(event);
-            }, initedCallback);
-        }
 
         if (DM.Player.API_MODE === null)
         {
@@ -247,10 +231,6 @@ DM.provide('Player',
         {
             case 'postMessage':
                 this.contentWindow.postMessage(command, DM.Player._PROTOCOL + DM._domain.www);
-                break;
-
-            case 'xdcom':
-                DM.Player.xdcomChannel.postMessage(this.id, command);
                 break;
 
             case 'fragment':
