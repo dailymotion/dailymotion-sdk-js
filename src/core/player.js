@@ -79,10 +79,10 @@ DM.provide('Player',
     setFullscreen: function(fullscreen) {this.api('fullscreen', fullscreen);},
     watchOnSite: function(muted) {this.api('watch-on-site');},
 
-    api: function(command, arg)
+    api: function(command)
     {
-        if(typeof arg !== 'undefined') command += '=' + arg;
-        this._send(command);
+        var parameters = (2 <= arguments.length) ? [].slice.call(arguments, 1) : [];
+        this._send(command, parameters);
     },
 
     create: function(element, options)
@@ -225,15 +225,22 @@ DM.provide('Player',
         }
     },
 
-    _send: function(command) // fragment API mode fallback
+    _send: function(command, parameters) // fragment API mode fallback
     {
         switch (DM.Player.API_MODE)
         {
             case 'postMessage':
-                this.contentWindow.postMessage(command, DM.Player._PROTOCOL + DM._domain.www);
+                this.contentWindow.postMessage({
+                    command    : command,
+                    parameters : parameters || []
+                }, DM.Player._PROTOCOL + DM._domain.www);
                 break;
 
             case 'fragment':
+                if(parameters && parameters.length)
+                {
+                    command += '=' + parameters[0];
+                }
                 var src = this.src, pos;
                 if ((pos = src.indexOf('#')) != -1) src = src.substring(0, pos);
                 this.src = src + '#' + command;
