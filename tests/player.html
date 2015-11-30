@@ -25,6 +25,7 @@ input[type=button]:hover {background: #efefef}
 .in {color: #232295} .out {color: #d05c00} .minor {color: #ccc} .info {color: #00a3bc} .fatal {color: #ff3333}
 #console.hide-minor .minor {display: none}
 #controls div {margin: 5px}
+.float-right { float: right; margin-right: 10px; }
 </style>
 
 <div id="player"></div>
@@ -33,10 +34,10 @@ input[type=button]:hover {background: #efefef}
 <input type=button value=toggle-play>
 <input type=button value=play>
 <input type=button value=pause>
-<input type=button value=load prompt="Video Id" default=xctlec>
+<input type=button value=load prompt="Video Id" default=x2m8jpp>
 <input type=button value=fullscreen>
 <input type=button value=watch-on-site>
-<span style="float: right">Platform: <script>document.write(navigator.platform)</script></span>
+<span class="float-right">Platform: <span id="platform"></span></span>
 </div>
 <div>
 <input type=button value=quality prompt="Quality" default=240>
@@ -52,25 +53,32 @@ input[type=button]:hover {background: #efefef}
 <input id="progress" value="--:--">
 <input id="duration" value="--:--">
 Status: <span id="status">unknown</span>
-<span style="float: right"><input type=checkbox name=empty> Force Empty Player</span>
-<span style="float: right; margin-right: 10px"><input type=checkbox name=html> Force HTML</span>
-<span style="float: right; margin-right: 10px"><input type=checkbox name=fragment> Force Fragment API</span>
+<span class="float-right"><input type=checkbox name=empty> Force Empty Player</span>
+<span class="float-right"><input type=checkbox name=html> Force HTML</span>
+<span class="float-right"><input type=checkbox name=fragment> Force Fragment API</span>
+<span class="float-right"><input type=checkbox name=autoplay checked> Autoplay on load</span>
 </div>
 </div>
 
 <ul id="console"></ul>
-<span style="position: absolute; bottom: 10px; right: 10px"><input type=checkbox name=hide> Hide time updates</span>
+<span style="position: absolute; bottom: 10px; right: 10px"><input type=checkbox name=hide checked> Hide time updates</span>
 
 <script>
+document.getElementById('platform').innerHTML = navigator.platform;
+
 //DM._domain.www = 'http://preprod.dailymotion.com';
 //DM._domain.www = 'http://stage-01.dailymotion.com';
 //DM._domain.www = 'http://local.dailymotion.com';
-//DM._domain.www = 'http://rs.dyn.dailymotion.com';
-//DM._domain.cdn = '//rs.rhapsodyk.net/dm/sdkjs';
+DM._domain.www = 'http://localhost:9090';
 
-var params = {html: "0"},
+var params = {},
     video = 'xwr14q',
-    player = DM.player($('#player').get(0), {video: video, width: '100%', height: '100%', params: params});
+    player = DM.player($('#player').get(0), {
+        video  : video,
+        width  : '100%',
+        height : '100%',
+        params : params
+    });
 
 $('input[name=html]:checkbox').change(function()
 {
@@ -87,11 +95,13 @@ $('input[name=fragment]:checkbox').change(function()
 });
 $('input[name=empty]:checkbox').change(function()
 {
-    var v = $(this).is(':checked') ? undefined : video
+    var v = $(this).is(':checked') ? undefined : video;
     player.init(v, params);
     $('<li class=info>** empty player:' + (!v ? 'on' : 'off') + '</li>').prependTo('#console');
 });
-$('input[name=hide]:checkbox').change(function()
+var hideCheckbox = $('input[name=hide]:checkbox');
+$('#console').toggleClass('hide-minor', hideCheckbox.is(':checked'));
+hideCheckbox.change(function()
 {
     $('#console').toggleClass('hide-minor', $(this).is(':checked'));
 });
@@ -104,7 +114,13 @@ $('input[type=button]').click(function()
         if (!arg) return;
     }
     $('<li class=out>&lt;- ' + cmd + (arg ? '=' + arg : '') + '</li>').prependTo('#console');
-    $('#player').get(0).api(cmd, arg);
+    params = [cmd, arg];
+
+    if (cmd === 'load' && !$('input[name=autoplay]').is(':checked'))
+    {
+        params.push({ autoplay: false });
+    }
+    player.api.apply(player, params);
 });
 $(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
 {
