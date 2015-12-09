@@ -55,7 +55,6 @@ input[type=button]:hover {background: #efefef}
 Status: <span id="status">unknown</span>
 <span class="float-right"><input type=checkbox name=empty> Force Empty Player</span>
 <span class="float-right"><input type=checkbox name=html> Force HTML</span>
-<span class="float-right"><input type=checkbox name=fragment> Force Fragment API</span>
 <span class="float-right"><input type=checkbox name=autoplay checked> Autoplay on load</span>
 </div>
 </div>
@@ -69,7 +68,7 @@ document.getElementById('platform').innerHTML = navigator.platform;
 //DM._domain.www = 'http://preprod.dailymotion.com';
 //DM._domain.www = 'http://stage-01.dailymotion.com';
 //DM._domain.www = 'http://local.dailymotion.com';
-DM._domain.www = 'http://localhost:9090';
+// DM._domain.www = 'http://localhost:9090';
 
 var params = {},
     video = 'xwr14q',
@@ -85,13 +84,6 @@ $('input[name=html]:checkbox').change(function()
     params.html = $(this).is(':checked') ? "1" : "0";
     player.init(video, params);
     $('<li class=info>** html=' + params.html + '</li>').prependTo('#console');
-});
-$('input[name=fragment]:checkbox').change(function()
-{
-    DM.Player.API_MODE = $(this).is(':checked') ? 'fragment' : null;
-    player.init(video, params);
-    $('<li class=info>** api-mode=' + DM.Player.API_MODE + '</li>').prependTo('#console');
-
 });
 $('input[name=empty]:checkbox').change(function()
 {

@@ -152,18 +152,14 @@ DM.provide('Player',
     init: function(video, params)
     {
         var self = this;
-        DM.Player._installHandlers(function()
-        {
-            // ask the peer to resend the apiready event in case it missed it while installing handlers
-            self._send('check');
-        });
+        DM.Player._installHandlers();
         params = typeof params == "object" ? params : {};
         params.api = DM.Player.API_MODE;
-        
+
         // Support for old browser without location.origin
         if (location.origin)
             params.origin = location.origin;
-        else 
+        else
             params.origin = '*';
 
         if (DM._apiKey)
@@ -181,7 +177,7 @@ DM.provide('Player',
         this.autoplay = DM.parseBool(params.autoplay);
     },
 
-    _installHandlers: function(initedCallback)
+    _installHandlers: function()
     {
         if (DM.Player.API_MODE !== null) return;
         if (window.postMessage)
@@ -199,52 +195,16 @@ DM.provide('Player',
             if (window.addEventListener) window.addEventListener("message", handler, false);
             else if (window.attachEvent) window.attachEvent("onmessage", handler);
         }
-
-        if (DM.Player.API_MODE === null)
-        {
-            DM.Player.API_MODE = "fragment";
-            return; // no yet ready
-
-            if (!DM.Player._INTERVAL_ID)
-            {
-                DM.Player._INTERVAL_ID = setInterval(function()
-                {
-                    for (var id in DM.Player._INSTANCES)
-                    {
-                        var player = DM.Player._INSTANCES[id], pos;
-                        if ((pos = player.src.indexOf('#')) != -1)
-                        {
-                            var event = DM.QS.decode(src.substring(pos + 1));
-                            player.src = src.substring(0, pos); // reset fragment
-                            if (event.id && event.event) player._recvEvent(event);
-                        }
-                    }
-                    if (DM.Player._INSTANCES.length === 0) clearInterval(DM.Player._INTERVAL_ID);
-                }, 0);
-            }
-        }
     },
 
-    _send: function(command, parameters) // fragment API mode fallback
+    _send: function(command, parameters)
     {
-        switch (DM.Player.API_MODE)
+        if (DM.Player.API_MODE == 'postMessage')
         {
-            case 'postMessage':
-                this.contentWindow.postMessage({
-                    command    : command,
-                    parameters : parameters || []
-                }, DM.Player._PROTOCOL + DM._domain.www);
-                break;
-
-            case 'fragment':
-                if(parameters && parameters.length)
-                {
-                    command += '=' + parameters[0];
-                }
-                var src = this.src, pos;
-                if ((pos = src.indexOf('#')) != -1) src = src.substring(0, pos);
-                this.src = src + '#' + command;
-                break;
+            this.contentWindow.postMessage({
+                command    : command,
+                parameters : parameters || []
+            }, DM.Player._PROTOCOL + DM._domain.www);
         }
     },
 
