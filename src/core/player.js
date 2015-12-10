@@ -16,7 +16,6 @@
  * @provides dm.player
  * @requires dm.prelude
  *           dm.qs
- *           dm.xdcom
  */
 
 /**
@@ -71,7 +70,7 @@ DM.provide('Player',
     togglePlay: function() {this.api('toggle-play');},
     pause: function() {this.api('pause');},
     seek: function(time) {this.api('seek', time);},
-    load: function(id) {this.api('load', id);},
+    load: function(id, settings) {this.api('load', id, settings);},
     setMuted: function(muted) {this.api('muted', muted);},
     toggleMuted: function() {this.api('toggle-muted');},
     setVolume: function(volume) {this.api('volume', volume);},
@@ -80,10 +79,10 @@ DM.provide('Player',
     setFullscreen: function(fullscreen) {this.api('fullscreen', fullscreen);},
     watchOnSite: function(muted) {this.api('watch-on-site');},
 
-    api: function(command, arg)
+    api: function(command)
     {
-        if(typeof arg !== 'undefined') command += '=' + arg;
-        this._send(command);
+        var parameters = (2 <= arguments.length) ? [].slice.call(arguments, 1) : [];
+        this._send(command, parameters);
     },
 
     create: function(element, options)
@@ -153,24 +152,16 @@ DM.provide('Player',
     init: function(video, params)
     {
         var self = this;
-        DM.Player._installHandlers(function()
-        {
-            // ask the peer to resend the apiready event in case it missed it while installing handlers
-            self._send('check');
-        });
+        DM.Player._installHandlers();
         params = typeof params == "object" ? params : {};
         params.api = DM.Player.API_MODE;
-        
+
         // Support for old browser without location.origin
         if (location.origin)
             params.origin = location.origin;
-        else 
+        else
             params.origin = '*';
 
-        if (DM.Player.API_MODE == 'xdcom')
-        {
-            params.xdcomId = DM.Player.xdcomChannel.connectionId;
-        }
         if (DM._apiKey)
         {
             params.apiKey = DM._apiKey;
@@ -186,7 +177,7 @@ DM.provide('Player',
         this.autoplay = DM.parseBool(params.autoplay);
     },
 
-    _installHandlers: function(initedCallback)
+    _installHandlers: function()
     {
         if (DM.Player.API_MODE !== null) return;
         if (window.postMessage)
@@ -204,60 +195,16 @@ DM.provide('Player',
             if (window.addEventListener) window.addEventListener("message", handler, false);
             else if (window.attachEvent) window.attachEvent("onmessage", handler);
         }
-        else if(DM.XDCom.capable())
-        {
-            DM.Player.API_MODE = "xdcom";
-            DM.Player.xdcomChannel = DM.XDCom.createChannel(function(data)
-            {
-                var event = DM.QS.decode(data);
-                if (!event.id || !event.event) return;
-                var player = DM.$(event.id);
-                player._recvEvent(event);
-            }, initedCallback);
-        }
-
-        if (DM.Player.API_MODE === null)
-        {
-            DM.Player.API_MODE = "fragment";
-            return; // no yet ready
-
-            if (!DM.Player._INTERVAL_ID)
-            {
-                DM.Player._INTERVAL_ID = setInterval(function()
-                {
-                    for (var id in DM.Player._INSTANCES)
-                    {
-                        var player = DM.Player._INSTANCES[id], pos;
-                        if ((pos = player.src.indexOf('#')) != -1)
-                        {
-                            var event = DM.QS.decode(src.substring(pos + 1));
-                            player.src = src.substring(0, pos); // reset fragment
-                            if (event.id && event.event) player._recvEvent(event);
-                        }
-                    }
-                    if (DM.Player._INSTANCES.length === 0) clearInterval(DM.Player._INTERVAL_ID);
-                }, 0);
-            }
-        }
     },
 
-    _send: function(command) // fragment API mode fallback
+    _send: function(command, parameters)
     {
-        switch (DM.Player.API_MODE)
+        if (DM.Player.API_MODE == 'postMessage')
         {
-            case 'postMessage':
-                this.contentWindow.postMessage(command, DM.Player._PROTOCOL + DM._domain.www);
-                break;
-
-            case 'xdcom':
-                DM.Player.xdcomChannel.postMessage(this.id, command);
-                break;
-
-            case 'fragment':
-                var src = this.src, pos;
-                if ((pos = src.indexOf('#')) != -1) src = src.substring(0, pos);
-                this.src = src + '#' + command;
-                break;
+            this.contentWindow.postMessage({
+                command    : command,
+                parameters : parameters || []
+            }, DM.Player._PROTOCOL + DM._domain.www);
         }
     },
 
