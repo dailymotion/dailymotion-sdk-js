@@ -113,7 +113,7 @@ DM.provide('',
                     cb(jsonResponse);
                 }
 
-                delete(window[callbackName]);
+                window[callbackName] = null;
             };
             parameters.push('callback=' + callbackName);
         }
@@ -225,7 +225,18 @@ DM.provide('Auth',
             return;
         }
 
-        DM.Auth._active[session.state].session = session;
+        // Don't remove this "stupid" clone logic, it's needed for IE8 to IE11
+        var parsedSession;
+        if (session) {
+            parsedSession = {};
+            for (k in session) parsedSession[k] = session[k];
+        }
+        else {
+            parsedSession = session;
+        }
+        // end of clone logic, f*ck you IE.
+
+        DM.Auth._active[session.state].session = parsedSession;
     },
 
     /**
