@@ -115,7 +115,7 @@ DM.provide('Cookie',
         var cookiesArr = document.cookie.split('; ');
         var dmCookie, session;
 
-        cookiesArr.forEach(function(cookie) {
+        DM.Array.forEach(cookiesArr, function(cookie) {
             var keyValuePair = DM.Cookie.getKeyValuePair(cookie);
 
             if(keyValuePair.key.match('dms_' + DM._apiKey)) {
