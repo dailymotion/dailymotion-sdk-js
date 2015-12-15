@@ -106,7 +106,7 @@ $('input[type=button]').click(function()
         if (!arg) return;
     }
     $('<li class=out>&lt;- ' + cmd + (arg ? '=' + arg : '') + '</li>').prependTo('#console');
-    params = [cmd, arg];
+    params = (!arg) ? [cmd] : [cmd, arg];
 
     if (cmd === 'load' && !$('input[name=autoplay]').is(':checked'))
     {
