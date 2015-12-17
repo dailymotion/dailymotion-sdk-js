@@ -201,10 +201,10 @@ DM.provide('Player',
     {
         if (DM.Player.API_MODE == 'postMessage')
         {
-            this.contentWindow.postMessage({
+            this.contentWindow.postMessage(JSON.stringify({
                 command    : command,
                 parameters : parameters || []
-            }, DM.Player._PROTOCOL + DM._domain.www);
+            }), DM.Player._PROTOCOL + DM._domain.www);
         }
     },
 
