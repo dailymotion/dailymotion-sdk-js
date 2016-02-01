@@ -77,6 +77,7 @@ DM.provide('Player',
     setQuality: function(quality) {this.api('quality', quality);},
     setSubtitle: function(subtitle) {this.api('subtitle', subtitle);},
     setFullscreen: function(fullscreen) {this.api('fullscreen', fullscreen);},
+    setProp: function() {this.api.apply(this, ['set-prop'].concat([].slice.call(arguments)));}, // onsite use only
     watchOnSite: function(muted) {this.api('watch-on-site');},
 
     api: function(command)
