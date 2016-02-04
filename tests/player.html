@@ -114,7 +114,7 @@ $('input[type=button]').click(function()
     }
     player.api.apply(player, params);
 });
-$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
+$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause start end video_start video_end ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
 {
     var data = {}, player = e.target;
     switch (e.type)
@@ -156,7 +156,9 @@ $(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata tim
         case 'subtitlechange':
             data['subtitle'] = player.subtitle;
             break;
-
+        case 'ended':
+            data['deprecated'] = "Use 'video_end' instead";
+            break;
         case 'error':
             data = player.error;
             break;
