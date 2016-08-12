@@ -60,6 +60,7 @@ DM.provide('Player',
     volume: 1,
     paused: true,
     fullscreen: false,
+    controls: undefined,
     rebuffering: false,
     qualities: [],
     quality: undefined,
@@ -77,6 +78,8 @@ DM.provide('Player',
     setQuality: function(quality) {this.api('quality', quality);},
     setSubtitle: function(subtitle) {this.api('subtitle', subtitle);},
     setFullscreen: function(fullscreen) {this.api('fullscreen', fullscreen);},
+    setControls: function (visible) { this.api('controls', visible);},
+    toggleControls: function () { this.api('toggle-controls');},
     setProp: function() {this.api.apply(this, ['set-prop'].concat([].slice.call(arguments)));}, // onsite use only
     watchOnSite: function(muted) {this.api('watch-on-site');},
 
@@ -246,6 +249,7 @@ DM.provide('Player',
             case 'seeking': this.seeking = true; this.currentTime = parseFloat(event.time); break;
             case 'seeked': this.seeking = false; this.currentTime = parseFloat(event.time); break;
             case 'fullscreenchange': this.fullscreen = DM.parseBool(event.fullscreen); break;
+            case 'controlschange': this.controls = DM.parseBool(event.controls); break;
             case 'volumechange': this.volume = parseFloat(event.volume); this.muted = DM.parseBool(event.muted); break;
             case 'video_start':
             case 'ad_start':
