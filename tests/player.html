@@ -20,7 +20,7 @@ input {font-size: 20px; border: 1px solid #333; background: #fff; margin-left: 0
 input[type=button]:hover {background: #efefef}
 #player {height: 350px; width: 100%}
 #progress, #duration {width: 80px; text-align:center}
-#console {position: absolute; min-height: 300px; top: 500px; bottom: 0; width: 100%; margin: 0; overflow: auto; list-style-type: none; padding: 5px; background: #eee}
+#console {position: absolute; min-height: 300px; top: 530px; bottom: 0; width: 100%; margin: 0; overflow: auto; list-style-type: none; padding: 5px; background: #eee}
 #console li {padding: 2px; font-family: courier; font-size: 18px}
 .in {color: #232295} .out {color: #d05c00} .minor {color: #ccc} .info {color: #00a3bc} .fatal {color: #ff3333}
 #console.hide-minor .minor {display: none}
@@ -48,6 +48,10 @@ input[type=button]:hover {background: #efefef}
 <input type=button value=mute>
 <input type=button value=unmute>
 <input type=button value=volume prompt="Volume" default=1>
+</div>
+<div>
+<input type=button value=toggle-controls>
+<input type=button value="controls" prompt="Controls" default=1>
 </div>
 <div>
 <input id="progress" value="--:--">
@@ -114,7 +118,7 @@ $('input[type=button]').click(function()
     }
     player.api.apply(player, params);
 });
-$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange pause start end video_start video_end ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
+$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange controlschange pause start end video_start video_end ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
 {
     var data = {}, player = e.target;
     switch (e.type)
@@ -134,6 +138,10 @@ $(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata tim
         case 'durationchange':
             data['duration'] = player.duration;
             $('#duration').val(timeFormated(player.duration));
+            break;
+
+        case 'controlschange':
+            data['controls'] = player.controls;
             break;
 
         case 'fullscreenchange':
