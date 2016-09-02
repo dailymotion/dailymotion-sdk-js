@@ -203,6 +203,14 @@ DM.provide('Player',
 
     _send: function(command, parameters)
     {
+        if (!this.apiReady) {
+            try {
+                if (console && typeof console.warn === 'function') {
+                    console.warn('Player not ready. Ignoring command : "'+command+'"');
+                }
+            } catch (e) {}
+            return;
+        }
         if (DM.Player.API_MODE == 'postMessage')
         {
             this.contentWindow.postMessage(JSON.stringify({
