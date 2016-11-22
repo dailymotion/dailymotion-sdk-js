@@ -4,7 +4,7 @@ FILES := src/third-party/json2.js src/core/prelude.js src/core/json.js src/commo
          src/core/cookie.js src/core/event.js src/core/init.js src/core/epilogue.js src/core/qs.js src/core/api.js \
          src/core/auth.js src/core/player.js
 
-COMPRESSOR_BIN := yuicompressor
+COMPRESSOR_BIN := yui-compressor
 
 TEMP_FILE = /tmp/dailymotion-sdk-js-raw.tmp
 
