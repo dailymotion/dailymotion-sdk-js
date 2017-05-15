@@ -153,7 +153,12 @@ DM.provide('Auth',
         if (window.location.host.match(/dailymotion\.com$/))
         {
             var cookie = document.cookie.match(/\bsid=([a-f0-9]+)/);
-            if (cookie)
+            var access_token = document.cookie.match(/\baccess_token=([a-zA-Z0-9._-]+)/);
+            if (access_token)
+            {
+                DM.Auth.setSession({'access_token': access_token[1]});
+            }
+            else if (cookie)
             {
                 DM.Auth.setSession({'access_token': cookie[1]});
             }
