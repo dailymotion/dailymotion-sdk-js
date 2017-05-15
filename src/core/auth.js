@@ -153,10 +153,17 @@ DM.provide('Auth',
         if (window.location.host.match(/dailymotion\.com$/))
         {
             var cookie = document.cookie.match(/\bsid=([a-f0-9]+)/);
+            var neon = document.cookie.match(/\bneon=([0-9]{1})/);
+            var neon_access_token = document.cookie.match(/\baccess_token=([a-zA-Z0-9._-]+)/);
             if (cookie)
             {
                 DM.Auth.setSession({'access_token': cookie[1]});
             }
+            if (neon && neon[1] == "1")
+            {
+                DM.Auth.setSession({'access_token': neon_access_token[1]});
+            }
+
         }
     },
 
