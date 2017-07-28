@@ -66,6 +66,7 @@ DM.provide('Player',
     quality: undefined,
     subtitles: [],
     subtitle: undefined,
+    video: null,
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -275,6 +276,7 @@ DM.provide('Player',
             case 'qualitychange': this.quality = event.quality; break;
             case 'subtitlesavailable': this.subtitles = event.subtitles; break;
             case 'subtitlechange': this.subtitle = event.subtitle; break;
+            case 'videochange': this.video = { videoId: event.videoId, title: event.title}; break;
         }
 
         this._dispatch(event.event);

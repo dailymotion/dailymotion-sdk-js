@@ -118,7 +118,7 @@ $('input[type=button]').click(function()
     }
     player.api.apply(player, params);
 });
-$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange controlschange pause start end video_start video_end ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end', function(e)
+$(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange controlschange pause start end video_start video_end ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end videochange', function(e)
 {
     var data = {}, player = e.target;
     switch (e.type)
@@ -169,6 +169,9 @@ $(player).bind( 'apiready play playing canplay canplaythrough loadedmetadata tim
             break;
         case 'error':
             data = player.error;
+            break;
+        case 'videochange':
+            data = player.video;
             break;
     }
 
