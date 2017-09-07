@@ -32,6 +32,14 @@ test('query string decoding', function()
     ok(multiple.a == 1, 'expect a == 1 in multiple');
     ok(multiple.b == 2, 'expect b == 2 in multiple');
 
+    var complexReference = {
+      depth1a: { depth2: { depth3a: 'value1', depth3b: 'value2[withSpecialChars]&stuff' } },
+      depth1b: { depth2: 'value3' },
+      depth1c: 'value4'
+    }
+    var complex = DM.QS.decode('depth1a%5Bdepth2%5D%5Bdepth3a%5D=value1&depth1a%5Bdepth2%5D%5Bdepth3b%5D=value2%5BwithSpecialChars%5D%26stuff&depth1b%5Bdepth2%5D=value3&depth1c=value4');
+    ok(JSON.stringify(complexReference) === JSON.stringify(complex), 'expect complex object to be valid');
+
     var encoded = DM.QS.decode('a%20b%20c=d%20e%20f');
     ok(encoded['a b c'] == 'd e f', 'expect decoded key and value');
 });
