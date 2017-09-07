@@ -65,30 +65,36 @@ DM.provide('QS',
      */
     decode: function(str)
     {
-        var decode = decodeURIComponent,
-            params = {},
-            parts  = str.split('&'),
-            i,
-            pair,
-            key,
-            val;
+        var qsParams = str.split('&');
+        var decode = decodeURIComponent;
 
-        for (i = 0; i < parts.length; i++)
-        {
-            pair = parts[i].split('=', 2);
-            if (pair && pair[0])
-            {
-                key = decode(pair[0]);
-                val = pair[1] ? decode(pair[1].replace(/\+/g, '%20')) : '';
-                if (/\[\]$/.test(key))
-                {
-                    key = key.slice(0,-2);
-                    (params[key] ? params[key] : params[key] = []).push(val);
+        var params = {};
+
+        for(var index = 0; index < qsParams.length; index += 1) {
+            var delimiterIndex = qsParams[index].indexOf('=');
+            if (delimiterIndex < 0 ) {
+                continue;
+            }
+
+            // Get a list of keys and a value from a "depth1[depth2][depth3]=value" string
+            var keyList = decode(qsParams[index].substring(0, delimiterIndex)).replace(/\]/g, '').split('[');
+            var value = decode(qsParams[index].substring(delimiterIndex + 1));
+
+            // Recursively create all the intermediate objects from the keys list,
+            // and set the value when done
+            var destinationParam = params;
+            while (keyList.length > 0) {
+                var keyItem = keyList.shift();
+                if (keyItem.length === 0) {
+                    continue;
                 }
-                else
-                {
-                    params[key] = val;
+                if (keyList.length === 0) {
+                    destinationParam[keyItem] = value;
                 }
+                else if (typeof destinationParam[keyItem] === 'undefined') {
+                    destinationParam[keyItem] = {};
+                }
+                destinationParam = destinationParam[keyItem];
             }
         }
 
