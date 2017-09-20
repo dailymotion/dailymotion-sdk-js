@@ -56,15 +56,29 @@ DM.provide('',
 
         if (DM._apiKey)
         {
+            // store the API secret key if provided. This allow the SDK to perform refresh token queries
+            DM._apiSecret = options.apiSecret || null;
+
             // enable cookie support if told to do so
             DM.Cookie.setEnabled(options.cookie);
 
-            // if an explicit session was not given, try to _read_ an existing cookie.
-            // we dont enable writing automatically, but we do read automatically.
-            options.session = options.session || DM.Auth._receivedSession || DM.Cookie.load();
+            var session = DM.Auth.loadSiteSession();
+            DM.Auth.readFragment();
 
-            // set the session
-            DM.Auth.setSession(options.session, options.session ? 'connected' : 'unknown');
+            if (null !== session && DM.Auth.isSessionExpired(session)) {
+                DM.Auth.refreshToken(session, function() {
+                    if (options.status)
+                    {
+                        DM.getLoginStatus();
+                    }
+                });
+            } else {
+                // if an explicit session was not given, or is not already loaded, try to _read_ an existing cookie.
+                // we dont enable writing automatically, but we do read automatically.
+                options.session = session || options.session || DM.Auth._receivedSession || DM.Cookie.load();
+
+                DM.Auth.setSession(options.session, options.session ? 'connected' : 'unknown');
+            }
 
             // load a fresh session if requested
             if (options.status)

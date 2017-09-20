@@ -374,6 +374,21 @@ DM.provide('ApiServer',
 
     performSimpleCall: function(path, method, params, cb)
     {
+        if (DM.Auth.isSessionExpired()) {
+            // If the session is expired
+            DM.Auth.refreshToken(DM._session, function (result) {
+                if (result.error) {
+                    if (cb)
+                    {
+                        cb(result);
+                    }
+                    return;
+                }
+                DM.ApiServer.performSimpleCall(path, method, params, cb);
+            });
+            return;
+        }
+
         var session = DM.getSession();
         // add oauth token if we have one
         if (session && session.access_token && !params.access_token)
@@ -433,6 +448,25 @@ DM.provide('ApiServer',
                 args: call.params,
                 id: i
             });
+        }
+
+        if (DM.Auth.isSessionExpired()) {
+            // If the session is expired
+            DM.Auth.refreshToken(DM._session, function (result) {
+                if (result.error) {
+                    DM.Array.forEach(calls, function(call)
+                    {
+                        if (call && call.cb)
+                        {
+                            call.cb(result);
+                        }
+                    });
+
+                    return;
+                }
+                DM.ApiServer.performMultipleCalls(calls);
+            });
+            return;
         }
 
         var session = DM.getSession();

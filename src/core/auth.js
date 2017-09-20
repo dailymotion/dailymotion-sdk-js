@@ -44,7 +44,7 @@ DM.provide('',
 
     getSession: function()
     {
-        if (DM._session && 'expires' in DM._session && new Date().getTime() > DM._session.expires * 1000)
+        if (DM.Auth.isSessionExpired())
         {
             DM.Auth.setSession(null, 'notConnected');
         }
@@ -150,18 +150,103 @@ DM.provide('Auth',
      */
     loadSiteSession: function()
     {
+        var emptySession = true;
+        var session = {};
+
         if (window.location.host.match(/dailymotion\.com$/))
         {
-            var cookie = document.cookie.match(/\bsid=([a-f0-9]+)/);
-            var access_token = document.cookie.match(/\baccess_token=([a-zA-Z0-9._-]+)/);
-            if (access_token)
+            var sidCookieValue = DM.Cookie.getCookieValue('sid');
+            var accessTokenCookieValue = DM.Cookie.getCookieValue('access_token');
+            var refreshTokenCookieValue = DM.Cookie.getCookieValue('refresh_token');
+
+            if (accessTokenCookieValue)
             {
-                DM.Auth.setSession({'access_token': access_token[1]});
+                session.access_token = accessTokenCookieValue;
+                emptySession = false;
             }
-            else if (cookie)
+            else if (sidCookieValue)
             {
-                DM.Auth.setSession({'access_token': cookie[1]});
+                session.access_token = sidCookieValue;
+                emptySession = false;
             }
+
+            if (refreshTokenCookieValue) {
+                session.refresh_token = refreshTokenCookieValue;
+                emptySession = false;
+            }
+
+            if (refreshTokenCookieValue && !session.access_token) {
+                // If the refresh cookie was found but not the access_token, this means
+                // that the access_token is probably expired (since the access_token cookie is probably absent
+                // due to it's passed expiration date)
+                // We then explicitly forced the expiration here
+                session.expires = Math.round(new Date().getTime() / 1000) - 10;
+            }
+        }
+
+        if (!emptySession) {
+            return session;
+        }
+
+        return null;
+    },
+
+    refreshToken: function(session, cb)
+    {
+        cb  = cb || function() {};
+
+        if (!DM.Auth.isSessionExpired(session)) {
+            cb(session);
+            return;
+        }
+
+        if (DM._apiKey && DM._apiSecret && session && session.refresh_token) {
+            var xhr = DM.ApiServer.xhr();
+
+            var params = {
+                'grant_type': 'refresh_token',
+                'client_id': DM._apiKey,
+                'client_secret': DM._apiSecret,
+                'refresh_token': session.refresh_token
+            };
+
+            var encodedParams = DM.QS.encode(params);
+
+            xhr.open('POST', DM._oauth.tokenUrl);
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhr.send(encodedParams);
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}},
+                        response;
+
+                    if (xhr.status)
+                    {
+                        try
+                        {
+                            response = DM.JSON.parse(xhr.responseText);
+                        } catch(e) {}
+                    }
+
+                    if (DM.type(response) != 'object')
+                    {
+                        response = globalError;
+                        DM.error('Cannot parse call response data ' + xhr.responseText);
+                    }
+                    if (xhr.status && xhr.status !== 200)
+                    {
+                        response = globalError;
+                    }
+
+                    var newSession = response.access_token ? response : null;
+                    DM.Auth.setSession(newSession, newSession ? 'connected' : 'notConnected');
+
+                    cb(response);
+                }
+            };
+        } else {
+            cb(session);
         }
     },
 
@@ -329,6 +414,16 @@ DM.provide('Auth',
         return response;
     },
 
+    isSessionExpired: function(session)
+    {
+        if (typeof(session) === 'undefined') {
+            session = DM._session;
+        }
+
+        return !session
+            || (session && 'expires' in session && new Date().getTime() > session.expires * 1000);
+    },
+
     /**
      * Start and manage the window monitor interval. This allows us to invoke
      * the default callback for a window when the user closes the window
@@ -403,6 +498,3 @@ DM.provide('Auth',
         }
     }
 });
-
-DM.Auth.loadSiteSession();
-DM.Auth.readFragment();

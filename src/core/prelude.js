@@ -82,7 +82,8 @@ if (!window.DM)
         _oauth:
         {
             logoutUrl: 'https://www.dailymotion.com/oauth/logout',
-            authorizeUrl: 'https://www.dailymotion.com/oauth/authorize'
+            authorizeUrl: 'https://www.dailymotion.com/oauth/authorize',
+            tokenUrl: 'https://graphql.api.dailymotion.com/oauth/token'
         },
 
         /**
