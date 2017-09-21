@@ -374,7 +374,7 @@ DM.provide('ApiServer',
 
     performSimpleCall: function(path, method, params, cb)
     {
-        if (DM.Auth.isSessionExpired()) {
+        if (DM._session && DM.Auth.isSessionExpired()) {
             // If the session is expired
             DM.Auth.refreshToken(DM._session, function (result) {
                 if (result.error) {
@@ -450,7 +450,7 @@ DM.provide('ApiServer',
             });
         }
 
-        if (DM.Auth.isSessionExpired()) {
+        if (DM._session && DM.Auth.isSessionExpired()) {
             // If the session is expired
             DM.Auth.refreshToken(DM._session, function (result) {
                 if (result.error) {
