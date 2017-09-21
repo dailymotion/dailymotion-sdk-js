@@ -38,7 +38,9 @@ DM.provide('',
     {
         if (cb)
         {
-            cb({status: DM._userStatus, session: DM._session});
+            DM.Auth.refreshToken(DM._session, function (session) {
+                cb({status: DM._userStatus, session: session});
+            });
         }
     },
 
