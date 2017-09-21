@@ -62,8 +62,18 @@ DM.provide('',
             // enable cookie support if told to do so
             DM.Cookie.setEnabled(options.cookie);
 
-            var session = DM.Auth.loadSiteSession();
             DM.Auth.readFragment();
+
+            // if an explicit session was not given, or is not already loaded, try to _read_ an existing cookie.
+            // we dont enable writing automatically, but we do read automatically.
+            var session = options.session || DM.Auth._receivedSession || DM.Cookie.load();
+
+            if (!session || !session.refresh_token) {
+                var siteSession = DM.Auth.loadSiteSession();
+                if (null !== siteSession) {
+                    session = siteSession;
+                }
+            }
 
             if (null !== session && DM.Auth.isSessionExpired(session)) {
                 DM.Auth.refreshToken(session, function() {
@@ -73,11 +83,7 @@ DM.provide('',
                     }
                 });
             } else {
-                // if an explicit session was not given, or is not already loaded, try to _read_ an existing cookie.
-                // we dont enable writing automatically, but we do read automatically.
-                options.session = session || options.session || DM.Auth._receivedSession || DM.Cookie.load();
-
-                DM.Auth.setSession(options.session, options.session ? 'connected' : 'unknown');
+                DM.Auth.setSession(session, session ? 'connected' : 'unknown');
             }
 
             // load a fresh session if requested
