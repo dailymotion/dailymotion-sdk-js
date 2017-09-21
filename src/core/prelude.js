@@ -68,6 +68,8 @@ if (!window.DM)
         _apiKey: null,
         _session: null,
         _userStatus: 'unknown', // or 'notConnected' or 'connected'
+        _refreshRequested: false,
+        _refreshCallbacks: [],
 
         // logging is enabled by default. this is the logging shown to the
         // developer and not at all noisy.

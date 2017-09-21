@@ -195,8 +195,24 @@ DM.provide('Auth',
     {
         cb  = cb || function() {};
 
+        DM._refreshCallbacks.push(cb);
+
+        if (DM._refreshRequested) {
+            return;
+        }
+
+        DM._refreshRequested = true;
+
+        var callCallbacks = function(result) {
+            while(DM._refreshCallbacks.length > 0) {
+                var cb = DM._refreshCallbacks.pop();
+                cb(result);
+            }
+            DM._refreshRequested = false;
+        };
+
         if (!DM.Auth.isSessionExpired(session)) {
-            cb(session);
+            callCallbacks(session);
             return;
         }
 
@@ -242,11 +258,11 @@ DM.provide('Auth',
                     var newSession = response.access_token ? response : null;
                     DM.Auth.setSession(newSession, newSession ? 'connected' : 'notConnected');
 
-                    cb(response);
+                    callCallbacks(response);
                 }
             };
         } else {
-            cb(session);
+            callCallbacks(session);
         }
     },
 
