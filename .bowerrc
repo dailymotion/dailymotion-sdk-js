@@ -1,0 +1,12 @@
+{
+    "name": "dailymotion-sdk-js",
+    "version": "0.0.1",
+    "ignore": [
+        "LICENCE",
+        "Makefile",
+        "README",
+        "package.json"
+        "src",
+        "tests"
+    ]
+}
