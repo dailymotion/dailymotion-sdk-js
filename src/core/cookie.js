@@ -174,6 +174,30 @@ DM.provide('Cookie',
         DM.Cookie._domain = domain;
     },
 
+    setNeonCookies: function (accessToken, refreshToken, expiresIn)
+    {
+        if (typeof expiresIn === 'undefined') {
+            return;
+        }
+
+        var expires = new Date();
+        expires.setSeconds(expires.getSeconds() + expiresIn);
+        var longerDate = new Date(expires.getTime());
+        var longerExpiration = longerDate.setSeconds(longerDate.getSeconds() + 3600 * 24 * 30 * 3); // 3 months
+
+        if (accessToken) {
+            document.cookie = 'access_token=' + accessToken
+                + '; expires=' + new Date(expires).toUTCString()
+                + '; path=/';
+        }
+
+        if (refreshToken) {
+            document.cookie = 'refresh_token=' + refreshToken
+                + '; expires=' + new Date(longerExpiration).toUTCString()
+                + '; path=/';
+        }
+    },
+
     /**
      * Set the cookie using the given session object.
      *

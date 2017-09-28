@@ -64,15 +64,23 @@ DM.provide('',
 
             DM.Auth.readFragment();
 
-            // if an explicit session was not given, or is not already loaded, try to _read_ an existing cookie.
-            // we dont enable writing automatically, but we do read automatically.
-            var session = options.session || DM.Auth._receivedSession || DM.Cookie.load();
+            var session;
 
-            if (!session || !session.refresh_token) {
-                var siteSession = DM.Auth.loadSiteSession();
-                if (null !== siteSession) {
-                    session = siteSession;
-                }
+            var siteSession = DM.Auth.loadSiteSession();
+            if (null !== siteSession.session) {
+                session = siteSession.session;
+                DM._sessionLoadingMethod = siteSession.loading_method;
+            } else if (options.session) {
+                // if an explicit session was not given, or is not already loaded, try to _read_ an existing cookie.
+                // we dont enable writing automatically, but we do read automatically.
+                session = options.session;
+                DM._sessionLoadingMethod = 'init_options';
+            } else if (DM.Auth._receivedSession) {
+                session = DM.Auth._receivedSession;
+                DM._sessionLoadingMethod = 'fragment';
+            } else {
+                session = DM.Cookie.load();
+                DM._sessionLoadingMethod = 'local_cookies';
             }
 
             if (null !== session && DM.Auth.isSessionExpired(session)) {

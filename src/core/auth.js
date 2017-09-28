@@ -154,6 +154,10 @@ DM.provide('Auth',
     {
         var emptySession = true;
         var session = {};
+        var result = {
+            session: null,
+            loading_method: null
+        };
 
         if (window.location.host.match(/dailymotion\.com$/))
         {
@@ -161,19 +165,22 @@ DM.provide('Auth',
             var accessTokenCookieValue = DM.Cookie.getCookieValue('access_token');
             var refreshTokenCookieValue = DM.Cookie.getCookieValue('refresh_token');
 
+            if (refreshTokenCookieValue) {
+                session.refresh_token = refreshTokenCookieValue;
+                emptySession = false;
+            }
+
+            var loadingMethod = 'neon_cookie';
             if (accessTokenCookieValue)
             {
                 session.access_token = accessTokenCookieValue;
                 emptySession = false;
             }
-            else if (sidCookieValue)
+
+            if (!refreshTokenCookieValue && !accessTokenCookieValue && sidCookieValue)
             {
                 session.access_token = sidCookieValue;
-                emptySession = false;
-            }
-
-            if (refreshTokenCookieValue) {
-                session.refresh_token = refreshTokenCookieValue;
+                loadingMethod = 'sid_cookie';
                 emptySession = false;
             }
 
@@ -187,10 +194,11 @@ DM.provide('Auth',
         }
 
         if (!emptySession) {
-            return session;
+            result.session = session;
+            result.loading_method = loadingMethod;
         }
 
-        return null;
+        return result;
     },
 
     refreshToken: function(session, cb)
@@ -370,6 +378,8 @@ DM.provide('Auth',
             // CAVEAT: the expires here will actually only be valid on the client as end-user machines
             //         clock is rarely synced
             session.expires = Math.round(new Date().getTime() / 1000) + parseInt(session.expires_in, 10);
+
+            var expiresIn = parseInt(session.expires_in, 10);
             delete session.expires_in;
         }
 
@@ -388,6 +398,10 @@ DM.provide('Auth',
         if (sessionChange && DM.Cookie && DM.Cookie.getEnabled())
         {
             DM.Cookie.set(session);
+        }
+
+        if (DM._sessionLoadingMethod === 'neon_cookie') {
+            DM.Cookie.setNeonCookies(session.access_token, session.refresh_token, expiresIn);
         }
 
         // events
@@ -432,14 +446,27 @@ DM.provide('Auth',
         return response;
     },
 
-    isSessionExpired: function(session)
+    isSessionExpired: function(session, sessionLoadingMethod)
     {
         if (typeof(session) === 'undefined') {
             session = DM._session;
         }
 
-        return !session
-            || (session && 'expires' in session && new Date().getTime() > session.expires * 1000);
+        if (typeof(sessionLoadingMethod) === 'undefined') {
+            sessionLoadingMethod = DM._sessionLoadingMethod;
+        }
+
+        if (!session) {
+            return true;
+        }
+
+        if (sessionLoadingMethod === 'neon_cookie') {
+            // Live check if the access token cookie is still present.
+            // If not, the access token expired since the cookie lifetime is the same as the access token
+            return !DM.Cookie.getCookieValue('access_token');
+        }
+
+        return session && 'expires' in session && new Date().getTime() > session.expires * 1000;
     },
 
     /**

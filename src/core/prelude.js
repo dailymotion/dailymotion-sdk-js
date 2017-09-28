@@ -70,6 +70,7 @@ if (!window.DM)
         _userStatus: 'unknown', // or 'notConnected' or 'connected'
         _refreshRequested: false,
         _refreshCallbacks: [],
+        _sessionLoadingMethod: null,
 
         // logging is enabled by default. this is the logging shown to the
         // developer and not at all noisy.
