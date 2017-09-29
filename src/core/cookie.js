@@ -104,6 +104,22 @@ DM.provide('Cookie',
         };
     },
 
+    getCookieValue: function(key)
+    {
+        var nameEQ = key + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1,c.length);
+            }
+            if (c.indexOf(nameEQ) == 0) {
+                return c.substring(nameEQ.length,c.length);
+            }
+        }
+        return null;
+    },
+
     /**
      * Try loading the session from the Cookie.
      *
@@ -156,6 +172,30 @@ DM.provide('Cookie',
 
         // capture domain for use when we need to clear
         DM.Cookie._domain = domain;
+    },
+
+    setNeonCookies: function (accessToken, refreshToken, expiresIn)
+    {
+        if (typeof expiresIn === 'undefined') {
+            return;
+        }
+
+        var expires = new Date();
+        expires.setSeconds(expires.getSeconds() + expiresIn);
+        var longerDate = new Date(expires.getTime());
+        var longerExpiration = longerDate.setSeconds(longerDate.getSeconds() + 3600 * 24 * 30 * 3); // 3 months
+
+        if (accessToken) {
+            document.cookie = 'access_token=' + accessToken
+                + '; expires=' + new Date(expires).toUTCString()
+                + '; path=/';
+        }
+
+        if (refreshToken) {
+            document.cookie = 'refresh_token=' + refreshToken
+                + '; expires=' + new Date(longerExpiration).toUTCString()
+                + '; path=/';
+        }
     },
 
     /**

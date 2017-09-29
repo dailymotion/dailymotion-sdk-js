@@ -38,13 +38,15 @@ DM.provide('',
     {
         if (cb)
         {
-            cb({status: DM._userStatus, session: DM._session});
+            DM.Auth.refreshToken(DM._session, function (session) {
+                cb({status: DM._userStatus, session: session});
+            });
         }
     },
 
     getSession: function()
     {
-        if (DM._session && 'expires' in DM._session && new Date().getTime() > DM._session.expires * 1000)
+        if (DM.Auth.isSessionExpired())
         {
             DM.Auth.setSession(null, 'notConnected');
         }
@@ -150,18 +152,127 @@ DM.provide('Auth',
      */
     loadSiteSession: function()
     {
+        var emptySession = true;
+        var session = {};
+        var result = {
+            session: null,
+            loading_method: null
+        };
+
         if (window.location.host.match(/dailymotion\.com$/))
         {
-            var cookie = document.cookie.match(/\bsid=([a-f0-9]+)/);
-            var access_token = document.cookie.match(/\baccess_token=([a-zA-Z0-9._-]+)/);
-            if (access_token)
-            {
-                DM.Auth.setSession({'access_token': access_token[1]});
+            var sidCookieValue = DM.Cookie.getCookieValue('sid');
+            var accessTokenCookieValue = DM.Cookie.getCookieValue('access_token');
+            var refreshTokenCookieValue = DM.Cookie.getCookieValue('refresh_token');
+
+            if (refreshTokenCookieValue) {
+                session.refresh_token = refreshTokenCookieValue;
+                emptySession = false;
             }
-            else if (cookie)
+
+            var loadingMethod = 'neon_cookie';
+            if (accessTokenCookieValue)
             {
-                DM.Auth.setSession({'access_token': cookie[1]});
+                session.access_token = accessTokenCookieValue;
+                emptySession = false;
             }
+
+            if (!refreshTokenCookieValue && !accessTokenCookieValue && sidCookieValue)
+            {
+                session.access_token = sidCookieValue;
+                loadingMethod = 'sid_cookie';
+                emptySession = false;
+            }
+
+            if (refreshTokenCookieValue && !session.access_token) {
+                // If the refresh cookie was found but not the access_token, this means
+                // that the access_token is probably expired (since the access_token cookie is probably absent
+                // due to it's passed expiration date)
+                // We then explicitly forced the expiration here
+                session.expires = Math.round(new Date().getTime() / 1000) - 10;
+            }
+        }
+
+        if (!emptySession) {
+            result.session = session;
+            result.loading_method = loadingMethod;
+        }
+
+        return result;
+    },
+
+    refreshToken: function(session, cb)
+    {
+        cb  = cb || function() {};
+
+        DM._refreshCallbacks.push(cb);
+
+        if (DM._refreshRequested) {
+            return;
+        }
+
+        DM._refreshRequested = true;
+
+        var callCallbacks = function(result) {
+            while(DM._refreshCallbacks.length > 0) {
+                var cb = DM._refreshCallbacks.pop();
+                cb(result);
+            }
+            DM._refreshRequested = false;
+        };
+
+        if (!DM.Auth.isSessionExpired(session)) {
+            callCallbacks(session);
+            return;
+        }
+
+        if (DM._apiKey && DM._apiSecret && session && session.refresh_token) {
+            var xhr = DM.ApiServer.xhr();
+
+            var params = {
+                'grant_type': 'refresh_token',
+                'client_id': DM._apiKey,
+                'client_secret': DM._apiSecret,
+                'refresh_token': session.refresh_token
+            };
+
+            var encodedParams = DM.QS.encode(params);
+
+            xhr.open('POST', DM._oauth.tokenUrl);
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhr.send(encodedParams);
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    var globalError = {error: {code: 500, message: 'Invalid server response', type: 'transport_error'}},
+                        response;
+
+                    if (xhr.status)
+                    {
+                        try
+                        {
+                            response = DM.JSON.parse(xhr.responseText);
+                        } catch(e) {}
+                    }
+
+                    if (DM.type(response) != 'object')
+                    {
+                        response = globalError;
+                        DM.error('Cannot parse call response data ' + xhr.responseText);
+                    }
+                    if (xhr.status && xhr.status !== 200)
+                    {
+                        response = globalError;
+                    }
+
+                    var newSession = response.access_token ? response : null;
+                    DM.Auth.setSession(newSession, newSession ? 'connected' : 'notConnected');
+
+                    callCallbacks(response);
+                }
+            };
+        } else {
+            callCallbacks(session);
         }
     },
 
@@ -267,6 +378,8 @@ DM.provide('Auth',
             // CAVEAT: the expires here will actually only be valid on the client as end-user machines
             //         clock is rarely synced
             session.expires = Math.round(new Date().getTime() / 1000) + parseInt(session.expires_in, 10);
+
+            var expiresIn = parseInt(session.expires_in, 10);
             delete session.expires_in;
         }
 
@@ -285,6 +398,10 @@ DM.provide('Auth',
         if (sessionChange && DM.Cookie && DM.Cookie.getEnabled())
         {
             DM.Cookie.set(session);
+        }
+
+        if (DM._sessionLoadingMethod === 'neon_cookie') {
+            DM.Cookie.setNeonCookies(session.access_token, session.refresh_token, expiresIn);
         }
 
         // events
@@ -327,6 +444,29 @@ DM.provide('Auth',
         }
 
         return response;
+    },
+
+    isSessionExpired: function(session, sessionLoadingMethod)
+    {
+        if (typeof(session) === 'undefined') {
+            session = DM._session;
+        }
+
+        if (typeof(sessionLoadingMethod) === 'undefined') {
+            sessionLoadingMethod = DM._sessionLoadingMethod;
+        }
+
+        if (!session) {
+            return true;
+        }
+
+        if (sessionLoadingMethod === 'neon_cookie') {
+            // Live check if the access token cookie is still present.
+            // If not, the access token expired since the cookie lifetime is the same as the access token
+            return !DM.Cookie.getCookieValue('access_token');
+        }
+
+        return session && 'expires' in session && new Date().getTime() > session.expires * 1000;
     },
 
     /**
@@ -403,6 +543,3 @@ DM.provide('Auth',
         }
     }
 });
-
-DM.Auth.loadSiteSession();
-DM.Auth.readFragment();
