@@ -48,6 +48,7 @@ DM.provide('Player',
     EVENT_HANDLERS: {},
 
     // video properties
+    _environmentInfo: null,
     apiReady: false,
     autoplay: false,
     currentTime: 0,
@@ -248,7 +249,7 @@ DM.provide('Player',
     {
         switch (event.event)
         {
-            case 'apiready': if (this.apiReady) return /* dispatch only once */; else this.apiReady = true; break;
+            case 'apiready': if (this.apiReady) return /* dispatch only once */; else this.apiReady = true; this._environmentInfo = event.info || null; break;
             case 'start': this.ended = false; break;
             case 'loadedmetadata': this.error = null; break;
             case 'timeupdate': // no break statement here
