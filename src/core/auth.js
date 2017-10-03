@@ -543,3 +543,6 @@ DM.provide('Auth',
         }
     }
 });
+
+DM.Auth.loadSiteSession();
+DM.Auth.readFragment();
