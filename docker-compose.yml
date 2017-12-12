@@ -1,0 +1,15 @@
+version: "2"
+services:
+  app:
+    build:
+      context: .
+    network_mode: bridge
+
+  integrity:
+    build:
+      context: .
+    command: bash -c "make && test -s all.js"
+    volumes:
+      - .:/usr/src/
+    network_mode: bridge
+

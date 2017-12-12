@@ -1,3 +1,8 @@
+#!/usr/bin/env make -f
+include Makefile.inc
+
+.PHONY: all
+
 PLAYER_FILES := src/core/prelude.js src/common/array.js src/core/player.js src/core/epilogue.js src/core/qs.js
 
 FILES := src/third-party/json2.js src/core/prelude.js src/core/json.js src/common/array.js \
@@ -18,3 +23,7 @@ player_api.js: $(PLAYER_FILES)
 	cat $(PLAYER_FILES) > $(TEMP_FILE)
 	$(COMPRESSOR_BIN) --type js -o $@ $(TEMP_FILE)
 
+.PHONY: integrity
+integrity:
+	$(COMPOSE) build integrity
+	$(COMPOSE) run integrity
