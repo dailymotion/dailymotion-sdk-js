@@ -27,3 +27,6 @@ player_api.js: $(PLAYER_FILES)
 integrity:
 	$(COMPOSE) build integrity
 	$(COMPOSE) run integrity
+
+deploy-prod:
+	fab prod release:master
