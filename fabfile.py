@@ -27,7 +27,7 @@ env.use_ssh_config = False
 env.conf = {
     'project': 'dailymotion-sdk-js',
     'git_ref': 'master',
-    'target_dir': '/tmp',
+    'target_dir': '/data/web/dailymotion-sdk-js',
     'make_dir': '/data/web'
 }
 
@@ -78,5 +78,5 @@ def cdn_cache_clear():
 @roles('app')
 def deploy():
     with cd(env.conf['make_dir']):
-        run('echo "deploy"')
+        run('make sync-js-sdk')
 
