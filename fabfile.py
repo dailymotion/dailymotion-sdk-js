@@ -38,7 +38,7 @@ def prod():
     """Work on the production environment
     """
     env.environment = 'prod'
-    env.user = 'jenkins-ci'
+    env.user = 'root'
     env.conf.update({
         'git_ref': 'prod'
     })
