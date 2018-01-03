@@ -6,7 +6,7 @@ pipeline {
   }
 
   agent {
-    label 'ci-ubuntu-slave'
+    label 'base-agent'
   }
 
   stages{
