@@ -22,7 +22,6 @@ from fabric.decorators import roles
 from fabric.operations import require
 from fabric.utils import puts
 from time import time
-from dateutil.tz import tzlocal
 
 env.use_ssh_config = False
 env.conf = {

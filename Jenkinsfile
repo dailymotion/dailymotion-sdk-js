@@ -6,7 +6,7 @@ pipeline {
   }
 
   agent {
-    label 'base-agent'
+    label 'sdk-agent'
   }
 
   stages{
@@ -32,6 +32,7 @@ pipeline {
       }
       steps {
         sh 'ssh-keyscan prov-04.adm.dc3.dailymotion.com >> ~/.ssh/known_hosts'
+        sh 'make'
         sh 'make deploy-prod'
       }
 
@@ -53,10 +54,5 @@ pipeline {
     }
   }
 
-  post {
-    failure {
-      slackSend "${serviceName}: Error on *${env.JOB_NAME}* for branch *${env.BRANCH_NAME}* (${env.BUILD_ID})"
-    }
-  }
 }
 
