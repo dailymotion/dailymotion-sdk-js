@@ -28,7 +28,7 @@ pipeline {
 
     stage ("Deploy prod") {
       when {
-        branch "prod"
+        branch "master"
       }
       steps {
         sh 'ssh-keyscan prov-04.adm.dc3.dailymotion.com >> ~/.ssh/known_hosts'

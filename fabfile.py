@@ -38,9 +38,6 @@ def prod():
     """
     env.environment = 'prod'
     env.user = 'root'
-    env.conf.update({
-        'git_ref': 'prod'
-    })
     env.roledefs.update({
         'app': [
             'prov-04.adm.dc3.dailymotion.com'
