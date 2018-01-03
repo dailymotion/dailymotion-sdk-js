@@ -1,5 +1,7 @@
 FROM ubuntu:14.04
 
+ENV DEBIAN_FRONTEND noninteractive
+
 LABEL maintainer="Thomas Ferreira <thomas.ferreira@dailymotion.com>"
 
 RUN apt-get update \
