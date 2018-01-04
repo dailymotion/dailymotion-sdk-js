@@ -41,6 +41,7 @@ DM.provide('',
  */
 DM.provide('Player',
 {
+    _IFRAME_ORIGIN: null,
     _INSTANCES: {},
     _INTERVAL_ID: null,
     _PROTOCOL: null,
@@ -192,7 +193,11 @@ DM.provide('Player',
 
             var handler = function(e)
             {
-                if (!e.origin || e.origin.indexOf(DM.Player._PROTOCOL + DM._domain.www) !== 0) return;
+                var originDomain = e.origin ? e.origin.replace(/^https?:/, '') : null;
+                if (!originDomain || originDomain.indexOf(DM._domain.www) !== 0) return;
+                if (!DM.Player._IFRAME_ORIGIN) {
+                  DM.Player._IFRAME_ORIGIN = e.origin
+                }
                 var event = DM.QS.decode(e.data);
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
@@ -218,7 +223,7 @@ DM.provide('Player',
             this.contentWindow.postMessage(JSON.stringify({
                 command    : command,
                 parameters : parameters || []
-            }), DM.Player._PROTOCOL + DM._domain.www);
+            }), DM.Player._IFRAME_ORIGIN);
         }
     },
 
