@@ -133,8 +133,6 @@ DM.provide('Player',
         });
         player.setAttribute("frameborder", "0");
         player.setAttribute("allowfullscreen", "true");
-        player.setAttribute("webkitallowfullscreen", "true");
-        player.setAttribute("mozallowfullscreen", "true");
         player.title = "Dailymotion " + options.title;
         player.type = "text/html";
         player.width = options.width;
