@@ -69,6 +69,7 @@ DM.provide('Player',
     subtitles: [],
     subtitle: undefined,
     video: null,
+    debug: null,
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -282,6 +283,7 @@ DM.provide('Player',
             case 'subtitlesavailable': this.subtitles = event.subtitles; break;
             case 'subtitlechange': this.subtitle = event.subtitle; break;
             case 'videochange': this.video = { videoId: event.videoId, title: event.title}; break;
+            case 'debug': this.debug = event.info; break;
         }
 
         this._dispatch(event.event);
