@@ -23,25 +23,67 @@ test('query string explicit encoding control', function()
     ok(DM.QS.encode(params, '&', false) == 'a b c=d e f', 'unencoded query string');
 });
 
-test('query string decoding', function()
+test('decoding single named value', function()
 {
-    var single = DM.QS.decode('a=1');
-    ok(single.a == 1, 'single value decode');
+    var expected = JSON.stringify({ a: "1" });
+    var actual = JSON.stringify(DM.QS.decode('a=1'));
+    ok(actual === expected);
+});
 
-    var multiple = DM.QS.decode('a=1&b=2');
-    ok(multiple.a == 1, 'expect a == 1 in multiple');
-    ok(multiple.b == 2, 'expect b == 2 in multiple');
+test('decoding multiple named value', function()
+{
+    var expected = JSON.stringify({ a: "1", b: "2" });
+    var actual = JSON.stringify(DM.QS.decode('a=1&b=2'))
+    ok(actual === expected);
+})
 
-    var complexReference = {
-      depth1a: { depth2: { depth3a: 'value1', depth3b: 'value2[withSpecialChars]&stuff' } },
-      depth1b: { depth2: 'value3' },
-      depth1c: 'value4'
-    }
-    var complex = DM.QS.decode('depth1a%5Bdepth2%5D%5Bdepth3a%5D=value1&depth1a%5Bdepth2%5D%5Bdepth3b%5D=value2%5BwithSpecialChars%5D%26stuff&depth1b%5Bdepth2%5D=value3&depth1c=value4');
-    ok(JSON.stringify(complexReference) === JSON.stringify(complex), 'expect complex object to be valid');
+test('decoding nested named value', function()
+{
+    // 'depth1a[depth2][depth3a]=value1&depth1a[depth2][depth3b]=value2[foo]&bar&depth1b[depth2]=value3&depth1c=value4'
+    var nested = 'depth1a%5Bdepth2%5D%5Bdepth3a%5D=value1&depth1a%5Bdepth2%5D%5Bdepth3b%5D=value2%5Bfoo%5D%26bar&depth1b%5Bdepth2%5D=value3&depth1c=value4';
+    var expected = JSON.stringify({
+        depth1a: { depth2: { depth3a: 'value1', depth3b: 'value2[foo]&bar' } },
+        depth1b: { depth2: 'value3' },
+        depth1c: 'value4'
+    })
+    var actual = JSON.stringify(DM.QS.decode(nested))
+    ok(actual === expected);
+});
 
-    var encoded = DM.QS.decode('a%20b%20c=d%20e%20f');
-    ok(encoded['a b c'] == 'd e f', 'expect decoded key and value');
+test('decoding named value with spaces in name and value', function()
+{
+    // a b c=d e f
+    var encoded = 'a%20b%20c=d%20e%20f';
+    var expected = JSON.stringify({ 'a b c': 'd e f' })
+    var actual = JSON.stringify(DM.QS.decode(encoded))
+    ok(actual === expected)
+});
+
+test('decoding array encoded with empty bracket', function()
+{
+    // 'qualities[]=720&qualities[]=480'
+    var emptyBracket = 'qualities%5B%5D=720&qualities%5B%5D=480';
+    var expected = JSON.stringify({ qualities: ['720', '480'] });
+    var actual = JSON.stringify(DM.QS.decode(emptyBracket));
+    ok(actual === expected)
+});
+
+test('decoding empty array encoded with empty bracket', function()
+{
+    // 'qualities[]='
+    var emptyBracketAndEmptyValue = 'qualities%5B%5D=';
+    var expected = JSON.stringify({ qualities: [''] })
+    var actual = JSON.stringify(DM.QS.decode(emptyBracketAndEmptyValue))
+    ok(actual === expected)
+});
+
+test('decoding nested array encoded with empty bracket ', function()
+{
+    // 'object[user][]=0&object[user][]=1'
+    var nestedAndEmptyBracket = 'object%5Buser%5D%5B%5D=a&object%5Buser%5D%5B%5D=b';
+    var expected = JSON.stringify({ object: { user: ['a', 'b'] } });
+    var actual = JSON.stringify(DM.QS.decode(nestedAndEmptyBracket))
+    ok(actual === expected)
 });
 
 test('query string empty value bug', function()
