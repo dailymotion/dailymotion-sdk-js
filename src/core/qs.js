@@ -72,7 +72,7 @@ DM.provide('QS',
 
         for(var index = 0; index < qsParams.length; index += 1) {
             var delimiterIndex = qsParams[index].indexOf('=');
-            if (delimiterIndex < 0 ) {
+            if (delimiterIndex < 1 ) {
                 continue;
             }
 
@@ -85,14 +85,16 @@ DM.provide('QS',
             var destinationParam = params;
             while (keyList.length > 0) {
                 var keyItem = keyList.shift();
-                if (keyItem.length === 0) {
-                    continue;
-                }
                 if (keyList.length === 0) {
-                    destinationParam[keyItem] = value;
+                    if (keyItem.length === 0) {
+                       destinationParam.push(value);
+                    }
+                    else {
+                        destinationParam[keyItem] = value;
+                    }
                 }
                 else if (typeof destinationParam[keyItem] === 'undefined') {
-                    destinationParam[keyItem] = {};
+                    destinationParam[keyItem] = keyList[0].length === 0 ? [] : {};
                 }
                 destinationParam = destinationParam[keyItem];
             }
