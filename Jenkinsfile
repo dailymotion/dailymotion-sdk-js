@@ -9,7 +9,17 @@ pipeline {
     label 'sdk-agent'
   }
 
+  libraries {
+    lib("release-pipeline-lib@master")
+  }
+
   stages{
+    stage ("Setup") {
+      steps {
+        setReleaseSSHkey()
+      }
+    }
+
     stage ("Quality") {
       steps {
         parallel(
