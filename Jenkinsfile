@@ -1,6 +1,6 @@
 pipeline {
   environment {
-    DOCKER_HOST = "tcp://inspect-02.adm.dc3.dailymotion.com:4243"
+    DOCKER_HOST = "tcp://releaseslave-01.adm.dc3.dailymotion.com:4243"
     serviceName = "dailymotion-sdk-js"
 
   }
