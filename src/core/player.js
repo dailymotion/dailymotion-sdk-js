@@ -155,7 +155,7 @@ DM.provide('Player',
         return player;
     },
 
-    getPathname: function(video, playlist)
+    _getPathname: function(video, playlist)
     {
         if (playlist) {
             return "/embed/playlist/" + playlist
