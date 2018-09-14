@@ -142,7 +142,7 @@ DM.provide('Player',
 
         DM.copy(player, DM.Player);
 
-        player.init(options.video, options.params);
+        player.init(options.video, options.params, options.playlist);
 
         if (typeof options.events == "object")
         {
@@ -155,7 +155,18 @@ DM.provide('Player',
         return player;
     },
 
-    init: function(video, params)
+    getPathname: function(video, playlist)
+    {
+        if (playlist) {
+            return "/embed/playlist/" + playlist
+        }
+        if (video) {
+            return "/embed/video/" + video
+        }
+        return "/embed"
+    },
+
+    init: function(video, params, playlist)
     {
         var self = this;
         DM.Player._installHandlers();
@@ -173,7 +184,7 @@ DM.provide('Player',
             params.apiKey = DM._apiKey;
         }
         this.id = params.id = this.id ? this.id : DM.guid();
-        this.src = DM.Player._PROTOCOL + DM._domain.www + "/embed" + (video ? "/video/" + video : "") + '?' + DM.QS.encode(params);
+        this.src = DM.Player._PROTOCOL + DM._domain.www + this.getPathname(video, playlist) + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
         {
             DM.Player._INSTANCES[this.id] = this;
