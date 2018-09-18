@@ -184,7 +184,7 @@ DM.provide('Player',
             params.apiKey = DM._apiKey;
         }
         this.id = params.id = this.id ? this.id : DM.guid();
-        this.src = DM.Player._PROTOCOL + DM._domain.www + this.getPathname(video, playlist) + '?' + DM.QS.encode(params);
+        this.src = DM.Player._PROTOCOL + DM._domain.www + this._getPathname(video, playlist) + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
         {
             DM.Player._INSTANCES[this.id] = this;
