@@ -55,7 +55,7 @@ pipeline {
               def USER_NAME = readFile('./build_user_name.txt').split("\r?\n")
               sh """
                 DATE=`echo \$(date '+%Y-%m-%dT%H:%M:%S%z')`
-                curl -i -X POST --data-urlencode 'data={"title": "[DAILYMOTION-SDK-JS] ${env.JOB_NAME} release - Build #${env.BUILD_NUMBER}","type":"release","datetime": "'\$DATE'","author": "${USER_NAME}","children": [{"title": "Link to build", "description": "${RUN_DISPLAY_URL}"}]}' http://events.dailymotion.com/api/document
+                curl -i -k -X POST --data-urlencode 'data={"title": "[DAILYMOTION-SDK-JS] ${env.JOB_NAME} release - Build #${env.BUILD_NUMBER}","type":"release","datetime": "'\$DATE'","author": "${USER_NAME}","children": [{"title": "Link to build", "description": "${RUN_DISPLAY_URL}"}]}' https://events.dailymotion.com/api/document
               """
             }
           }
@@ -70,4 +70,3 @@ pipeline {
     }
   }
 }
-
