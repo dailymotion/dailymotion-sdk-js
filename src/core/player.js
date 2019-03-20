@@ -208,7 +208,7 @@ DM.provide('Player',
                 if (!DM.Player._IFRAME_ORIGIN) {
                   DM.Player._IFRAME_ORIGIN = e.origin
                 }
-                var event = DM.QS.decode(e.data);
+                var event = DM.Player._decodePostMessage(e.data);
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
                 player._recvEvent(event);
@@ -216,6 +216,20 @@ DM.provide('Player',
             if (window.addEventListener) window.addEventListener("message", handler, false);
             else if (window.attachEvent) window.attachEvent("onmessage", handler);
         }
+    },
+
+    _decodePostMessage: function(rawMessage)
+    {
+      if (rawMessage.substring(0, 1) === '{') {
+        try {
+          var data = JSON.parse(rawMessage);
+          return data;
+        }
+        catch(e) {
+          return {};
+        }
+      }
+      return DM.QS.decode(rawMessage);
     },
 
     _send: function(command, parameters)
