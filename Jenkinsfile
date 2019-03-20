@@ -48,7 +48,7 @@ pipeline {
 
       post {
         success {
-          sendPipelineStatusToSlack (color: 'good', channel: "#production-environmen", message: "Release Pipeline to deploy dailymotion-sdk-js to Prod in run #${env.BUILD_NUMBER} (<${RUN_DISPLAY_URL}|Open>) has succeded!")
+          slackSend(color: 'good', channel: "#production-environmen", message: "Release Pipeline to deploy dailymotion-sdk-js to Prod in run #${env.BUILD_NUMBER} (<${RUN_DISPLAY_URL}|Open>) has succeded!")
           wrap([$class: 'BuildUser']) {
             sh 'echo ${BUILD_USER} > build_user_name.txt'
             script {
