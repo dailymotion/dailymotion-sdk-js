@@ -67,9 +67,7 @@ def send_file():
 
 @roles('app')
 def cdn_cache_clear():
-    with cd(env.conf['make_dir']):
-        run('echo "http://api.dmcdn.net/all.js" | ec_purge_small')
-        run('echo "https://api.dmcdn.net/all.js" | ec_purge_small')
+    print('THIS NEEDS TO BE UPDATED TO THE LATEST CDN SERVICE.')
 
 
 @roles('app')
