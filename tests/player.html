@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<script src="https://code.jquery.com/jquery-1.6.2.min.js"></script>
 <script src="../src/third-party/json2.js"></script>
 <script src="../src/core/prelude.js"></script>
 <script src="../src/common/array.js"></script>
@@ -15,12 +14,27 @@
 
 <style>
 * {font-family: sans-serif}
-body {margin: 0; overflow: hidden}
+body {
+    margin: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
 input {font-size: 20px; border: 1px solid #333; background: #fff; margin-left: 0}
 input[type=button]:hover {background: #efefef}
 #player {height: 350px; width: 100%}
 #progress, #duration {width: 80px; text-align:center}
-#console {position: absolute; min-height: 300px; top: 530px; bottom: 0; width: 100%; margin: 0; overflow: auto; list-style-type: none; padding: 5px; background: #eee}
+#console {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: auto;
+    list-style-type: none;
+    padding: 5px;
+    background: #eee;
+    box-sizing: border-box;
+}
 #console li {padding: 2px; font-family: courier; font-size: 18px}
 .in {color: #232295} .out {color: #d05c00} .minor {color: #ccc} .info {color: #00a3bc} .fatal {color: #ff3333}
 #console.hide-minor .minor {display: none}
@@ -63,7 +77,7 @@ Status: <span id="status">unknown</span>
 </div>
 </div>
 
-<ul id="console"></ul>
+<ul id="console" class="hide-minor"></ul>
 <span style="position: absolute; bottom: 10px; right: 10px"><input type=checkbox name=hide checked> Hide time updates</span>
 
 <script>
@@ -74,80 +88,103 @@ document.getElementById('platform').innerHTML = navigator.platform;
 //DM._domain.www = '//local.dailymotion.com';
 // DM._domain.www = '//localhost:9090';
 
-var params = {},
-    video = 'xwr14q',
-    player = DM.player($('#player').get(0), {
-        video  : video,
-        width  : '100%',
-        height : '100%',
-        params : params
-    });
+let params = {};
+const video = 'x730nnd';
+const player = DM.player(document.getElementById('player'), {
+    video,
+    params,
+    width: '100%',
+    height: '100%',
+});
+const consoleEl = document.getElementById("console");
+const autoplayEl = document.querySelector('input[name=autoplay]');
+const progressEl = document.getElementById('progress');
+const durationEl = document.getElementById('duration');
+const statusEl = document.getElementById('status');
 
-$('input[name=html]:checkbox').change(function()
-{
-    params.html = $(this).is(':checked') ? "1" : "0";
+function logToConsole(className, text) {
+    const log = document.createElement('li')
+    log.className = className;
+    log.innerHTML = text;
+    consoleEl.insertBefore(log, consoleEl.firstChild);
+}
+
+document.querySelector('input[name=html]').addEventListener("change", function(e){
+    params.html = e.target.checked ? "1" : "0";
     player.init(video, params);
-    $('<li class=info>** html=' + params.html + '</li>').prependTo('#console');
+    logToConsole('info', `** html= ${params.html}`);
 });
-$('input[name=empty]:checkbox').change(function()
-{
-    var v = $(this).is(':checked') ? undefined : video;
-    player.init(v, params);
-    $('<li class=info>** empty player:' + (!v ? 'on' : 'off') + '</li>').prependTo('#console');
-});
-var hideCheckbox = $('input[name=hide]:checkbox');
-$('#console').toggleClass('hide-minor', hideCheckbox.is(':checked'));
-hideCheckbox.change(function()
-{
-    $('#console').toggleClass('hide-minor', $(this).is(':checked'));
-});
-$('input[type=button]').click(function()
-{
-    var cmd = this.value, arg;
-    if ($(this).attr('prompt'))
-    {
-        arg = prompt($(this).attr('prompt'), $(this).attr('default'));
-        if (!arg) return;
-    }
-    $('<li class=out>&lt;- ' + cmd + (arg ? '=' + arg : '') + '</li>').prependTo('#console');
-    params = (!arg) ? [cmd] : [cmd, arg];
 
-    if (cmd === 'load' && !$('input[name=autoplay]').is(':checked'))
-    {
+document.querySelector('input[name=empty]').addEventListener("change", function(e){
+    const v = e.target.checked ? undefined : video;
+    player.init(v, params);
+    logToConsole('info', `** empty player: ${!v ? 'on' : 'off'}`);
+});
+
+document.querySelector('input[name=hide]').addEventListener('change', function(e) {
+    e.target.checked
+        ? consoleEl.classList.add('hide-minor')
+        : consoleEl.classList.remove('hide-minor');
+});
+
+function handleClick(e) {
+    const cmd = e.target.value;
+    let arg;
+    const message = e.target.getAttribute('prompt');
+    const defaultVal = e.target.getAttribute('default');
+    if (message) {
+        arg = prompt(message, defaultVal);
+        if(arg === null) return;
+    }
+
+    logToConsole('out', `&lt;- ${cmd}${arg ? '=' + arg : ''}`);
+
+    params = arg ? [cmd, arg] : [cmd];
+    if (cmd === 'load' && !autoplayEl.checked) {
         params.push({ autoplay: false });
     }
-    player.api.apply(player, params);
-});
-$(player).bind( 'apiready play playback_ready playing canplay canplaythrough loadedmetadata timeupdate progress seeking seeked volumechange durationchange controlschange pause start end video_start video_end ended error fullscreenchange qualitiesavailable qualitychange subtitlesavailable subtitlechange ad_start ad_timeupdate ad_play ad_pause ad_end videochange', function(e)
-{
-    var data = {}, player = e.target;
-    switch (e.type)
-    {
+    player.api.apply(player, params)
+}
+
+document.querySelectorAll('input[type=button]').forEach(input => {
+    input.addEventListener('click', handleClick);
+})
+
+function timeFormated(seconds) {
+    if (isNaN(seconds) || !isFinite(seconds)) return '--:--';
+    seconds = Math.round(seconds);
+    var hour = (hour = Math.floor(seconds / 3600)) < 10 ? '0' + hour : hour,
+        min = (min = Math.floor(seconds / 60) % 60) < 10 ? '0' + min : min,
+        sec = (sec = seconds % 60) < 10 ? '0' + sec : sec;
+
+    return seconds < 3600 ? min + ':' + sec : hour + 'h' + min;
+}
+
+const events = ["apiready", "play", "playback_ready", "playing", "canplay", "canplaythrough", "loadedmetadata", "timeupdate", "progress", "seeking", "seeked", "volumechange", "durationchange", "controlschange", "pause", "start", "end", "video_start", "video_end", "ended", "error", "fullscreenchange", "qualitiesavailable", "qualitychange", "subtitlesavailable", "subtitlechange", "ad_start", "ad_timeupdate", "ad_play", "ad_pause", "ad_end", "videochange", "adCompanions"];
+
+function handlePlayerEvents(e) {
+    let data = {};
+    switch (e.type) {
         case 'timeupdate':
         case 'ad_timeupdate':
         case 'seeking':
         case 'seeked':
             data['time'] = player.currentTime;
-            $('#progress').val(timeFormated(player.currentTime));
+            progressEl.value = timeFormated(player.currentTime);
             break;
-
         case 'progress':
             data['buffer'] = player.bufferedTime;
             break;
-
         case 'durationchange':
             data['duration'] = player.duration;
-            $('#duration').val(timeFormated(player.duration));
+            durationEl.value = timeFormated(player.duration);
             break;
-
         case 'controlschange':
             data['controls'] = player.controls;
             break;
-
         case 'fullscreenchange':
             data['fullscreen'] = player.fullscreen;
             break;
-
         case 'volumechange':
             data['volume'] = player.volume;
             data['muted'] = player.muted;
@@ -173,23 +210,26 @@ $(player).bind( 'apiready play playback_ready playing canplay canplaythrough loa
         case 'videochange':
             data = player.video;
             break;
+        case 'adCompanions':
+            data = player.companionAds;
+            break;
     }
 
-    if ($.inArray(e.type, ['play', 'playing', 'pause', 'ad_play', 'ad_pause']) !== -1) $('#status').html(e.type);
-    var line = $('<li class=in>-&gt; ' + e.type + ' ' + JSON.stringify(data) + '</li>').prependTo('#console');
-    if ($.inArray(e.type, ['timeupdate', 'progress', 'ad_timeupdate']) !== -1) line.addClass('minor');
-    if (e.type == 'error') line.addClass('fatal');
-});
+    if (['play', 'playing', 'pause', 'ad_play', 'ad_pause'].includes(e.type)) {
+        statusEl.innerHTML = e.type;
+    }
 
-function timeFormated(seconds)
-{
-    if (isNaN(seconds) || !isFinite(seconds)) return '--:--';
-    seconds = Math.round(seconds);
-    var hour = (hour = Math.floor(seconds / 3600)) < 10 ? '0' + hour : hour,
-        min = (min = Math.floor(seconds / 60) % 60) < 10 ? '0' + min : min,
-        sec = (sec = seconds % 60) < 10 ? '0' + sec : sec;
+    const classNames = ["in"];
+    if (['timeupdate', 'progress', 'ad_timeupdate'].includes(e.type)) {
+        classNames.push('minor');
+    }
+    if (e.type == 'error') {
+        classNames.push('fatal');
+    }
 
-    return seconds < 3600 ? min + ':' + sec : hour + 'h' + min;
+    logToConsole(classNames.join(" "), `-&gt; ${e.type} ${JSON.stringify(data)}`);
 }
+
+events.forEach(event => player.addEventListener(event, handlePlayerEvents));
 
 </script>
