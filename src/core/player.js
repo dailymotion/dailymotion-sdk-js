@@ -308,7 +308,7 @@ DM.provide('Player',
             case 'subtitlesavailable': this.subtitles = event.subtitles; break;
             case 'subtitlechange': this.subtitle = event.subtitle; break;
             case 'videochange': this.video = { videoId: event.videoId, title: event.title}; break;
-            case 'adCompanions': this.companionAds = event.companionAds; break;
+            case 'ad_companions': this.companionAds = event.companionAds; break;
         }
 
         this._dispatch(event.event);

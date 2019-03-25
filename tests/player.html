@@ -160,7 +160,7 @@ function timeFormated(seconds) {
     return seconds < 3600 ? min + ':' + sec : hour + 'h' + min;
 }
 
-const events = ["apiready", "play", "playback_ready", "playing", "canplay", "canplaythrough", "loadedmetadata", "timeupdate", "progress", "seeking", "seeked", "volumechange", "durationchange", "controlschange", "pause", "start", "end", "video_start", "video_end", "ended", "error", "fullscreenchange", "qualitiesavailable", "qualitychange", "subtitlesavailable", "subtitlechange", "ad_start", "ad_timeupdate", "ad_play", "ad_pause", "ad_end", "videochange", "adCompanions"];
+const events = ["apiready", "play", "playback_ready", "playing", "canplay", "canplaythrough", "loadedmetadata", "timeupdate", "progress", "seeking", "seeked", "volumechange", "durationchange", "controlschange", "pause", "start", "end", "video_start", "video_end", "ended", "error", "fullscreenchange", "qualitiesavailable", "qualitychange", "subtitlesavailable", "subtitlechange", "ad_start", "ad_timeupdate", "ad_play", "ad_pause", "ad_end", "videochange", "ad_companions"];
 
 function handlePlayerEvents(e) {
     let data = {};
@@ -210,7 +210,7 @@ function handlePlayerEvents(e) {
         case 'videochange':
             data = player.video;
             break;
-        case 'adCompanions':
+        case 'ad_companions':
             data = player.companionAds;
             break;
     }
