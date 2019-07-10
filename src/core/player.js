@@ -158,7 +158,7 @@ DM.provide('Player',
 
     _getPathname: function(video, playlist)
     {
-        if (playlist) {
+        if (playlist && !video) {
             return "/embed/playlist/" + playlist
         }
         if (video) {
@@ -184,6 +184,11 @@ DM.provide('Player',
         {
             params.apiKey = DM._apiKey;
         }
+
+        if (video && playlist) {
+            params.playlist = playlist;
+        }
+
         this.id = params.id = this.id ? this.id : DM.guid();
         this.src = DM.Player._PROTOCOL + DM._domain.www + this._getPathname(video, playlist) + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
