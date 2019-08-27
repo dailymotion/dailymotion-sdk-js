@@ -1,13 +1,26 @@
-FROM ubuntu:14.04
+FROM node:12.6.0
 
-ENV DEBIAN_FRONTEND noninteractive
+LABEL maintainer "Player Squad <squad-player@dailymotion.com>"
 
-LABEL maintainer="Thomas Ferreira <thomas.ferreira@dailymotion.com>"
+# Configure app basedir
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential yui-compressor \
-    && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
 
-COPY . /usr/src/
+# Install yuicompressor deps
 
-WORKDIR /usr/src
+RUN apt-get update && apt-get install -y java-common default-jre-headless java-wrappers libjargs-java
+
+# Install Node deps
+
+COPY package.json /usr/src/app
+COPY package-lock.json /usr/src/app
+RUN npm install
+
+# Copy app source
+
+COPY src /usr/src/app/src
+
+# Run!
+
+CMD ["npm", "run", "build"]

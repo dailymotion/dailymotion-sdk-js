@@ -1,32 +1,34 @@
-#!/usr/bin/env make -f
-include Makefile.inc
+# -*- mode: makefile -*-
 
-.PHONY: all
+VERSION = `git rev-parse --short HEAD`
+TO := _
 
-PLAYER_FILES := src/core/prelude.js src/common/array.js src/core/player.js src/core/epilogue.js src/core/qs.js
+ifdef BUILD_NUMBER
+NUMBER = $(BUILD_NUMBER)
+else
+NUMBER = 1
+endif
 
-FILES := src/third-party/json2.js src/core/prelude.js src/core/json.js src/common/array.js \
-         src/core/cookie.js src/core/event.js src/core/init.js src/core/epilogue.js src/core/qs.js src/core/api.js \
-         src/core/auth.js src/core/player.js
+ifdef JOB_BASE_NAME
+PROJECT_ENCODED_SLASH = $(subst %2F,$(TO),$(JOB_BASE_NAME))
+PROJECT = $(subst /,$(TO),$(PROJECT_ENCODED_SLASH))
+# Run on CI
+COMPOSE = docker-compose -f docker-compose.yml -f docker-compose.ci.yml -p dailymotionsdkjs_$(PROJECT)_$(NUMBER)
+else
+# Run Locally
+COMPOSE = docker-compose -p dailymotionsdkjs
+endif
 
-COMPRESSOR_BIN := yui-compressor
+.PHONY: init
+init:
+	# This following command is used to provision the network
+	$(COMPOSE) up --no-start --no-build app | true
 
-TEMP_FILE = /tmp/dailymotion-sdk-js-raw.tmp
+.PHONY: build
+build:
+	$(COMPOSE) build app
+	$(COMPOSE) up app
 
-all: all.js player_api.js
-
-all.js: $(FILES)
-	cat $(FILES) > $(TEMP_FILE)
-	$(COMPRESSOR_BIN) --type js -o $@ $(TEMP_FILE)
-
-player_api.js: $(PLAYER_FILES)
-	cat $(PLAYER_FILES) > $(TEMP_FILE)
-	$(COMPRESSOR_BIN) --type js -o $@ $(TEMP_FILE)
-
-.PHONY: integrity
-integrity:
-	$(COMPOSE) build integrity
-	$(COMPOSE) run integrity
-
-deploy-prod:
-	fab prod release:master
+.PHONY: down
+down:
+	$(COMPOSE) down --volumes

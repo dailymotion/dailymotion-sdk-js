@@ -1,13 +1,5 @@
-version: "2"
+version: '3'
 services:
   app:
-    build:
-      context: .
+    build: .
     network_mode: bridge
-
-  integrity:
-    build:
-      context: .
-    command: bash -c "make && test -s all.js"
-    network_mode: bridge
-
