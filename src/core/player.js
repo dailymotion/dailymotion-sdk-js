@@ -34,7 +34,14 @@ DM.provide('',
 
     destroy: function(id)
     {
-        DM.Player.destroy(id)
+        if (id === undefined) {  // destroy all players of the page
+            Object.keys(DM.Player._INSTANCES).forEach(function(id)
+            {
+                DM.Player.destroy(id)
+            });
+        } else if (DM.Player._INSTANCES[id] !== undefined) {  // destroy a player by its id
+            DM.Player.destroy(id)
+        }
     }
 });
 
@@ -163,13 +170,9 @@ DM.provide('Player',
 
     destroy: function(id)
     {
-        console.log(DM.Player)
-        
-        if (DM.Player._INSTANCES[id] !== undefined) {
-            document.getElementById(id).remove()
-            delete DM.Player._INSTANCES[id];
-            // TODO remove listeners : player.removeEventListener(name, options.events[name], false);
-        }
+        document.getElementById(id).remove()
+        delete DM.Player._INSTANCES[id];
+        // TODO remove listeners : player.removeEventListener(name, options.events[name], false);
     },
 
     _getPathname: function(video, playlist)
