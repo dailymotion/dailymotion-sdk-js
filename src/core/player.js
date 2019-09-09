@@ -30,6 +30,11 @@ DM.provide('',
     player: function(element, options)
     {
         return DM.Player.create(element, options);
+    },
+
+    destroy: function(id)
+    {
+        DM.Player.destroy(id)
     }
 });
 
@@ -154,6 +159,17 @@ DM.provide('Player',
         }
 
         return player;
+    },
+
+    destroy: function(id)
+    {
+        console.log(DM.Player)
+        
+        if (DM.Player._INSTANCES[id] !== undefined) {
+            document.getElementById(id).remove()
+            delete DM.Player._INSTANCES[id];
+            // TODO remove listeners : player.removeEventListener(name, options.events[name], false);
+        }
     },
 
     _getPathname: function(video, playlist)
