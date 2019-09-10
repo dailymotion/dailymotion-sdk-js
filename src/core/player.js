@@ -55,6 +55,8 @@ DM.provide('Player',
 {
     _IFRAME_ORIGIN: null,
     _INSTANCES: {},
+    _EVENTS: {},
+    _ANCHORS: {},
     _INTERVAL_ID: null,
     _PROTOCOL: null,
     API_MODE: null,
@@ -155,7 +157,7 @@ DM.provide('Player',
 
         DM.copy(player, DM.Player);
 
-        player.init(options.video, options.params, options.playlist);
+        player.init(options.video, options.params, options.playlist, options.events, element);
 
         if (typeof options.events == "object")
         {
@@ -170,9 +172,18 @@ DM.provide('Player',
 
     destroy: function(id)
     {
-        document.getElementById(id).remove()
-        delete DM.Player._INSTANCES[id];
-        // TODO remove listeners : player.removeEventListener(name, options.events[name], false);
+        var player = DM.Player._INSTANCES[id];
+        var anchor = DM.Player._ANCHORS[id];
+        
+        // remove options events listeners
+        DM.Player._EVENTS[id].forEach(function(event)
+        {
+            var name = Object.keys(event)[0]
+            player.removeEventListener(name, event[name], false);
+        });
+        
+        player.parentNode.replaceChild(anchor, player);  // replace the iframe by its initial anchor
+        delete DM.Player._INSTANCES[id];  // remove player instance
     },
 
     _getPathname: function(video, playlist)
@@ -186,7 +197,7 @@ DM.provide('Player',
         return "/embed"
     },
 
-    init: function(video, params, playlist)
+    init: function(video, params, playlist, events, element)
     {
         var self = this;
         DM.Player._installHandlers();
@@ -213,6 +224,8 @@ DM.provide('Player',
         if (DM.Player._INSTANCES[this.id] != this)
         {
             DM.Player._INSTANCES[this.id] = this;
+            DM.Player._EVENTS[this.id] = events;
+            DM.Player._ANCHORS[this.id] = element;
             this.addEventListener('unload', function() {delete DM.Player._INSTANCES[this.id];});
         }
 

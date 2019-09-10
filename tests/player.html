@@ -91,7 +91,7 @@ document.getElementById('platform').innerHTML = navigator.platform;
 //DM._domain.www = '//preprod.dailymotion.com';
 //DM._domain.www = '//stage-01.dailymotion.com';
 //DM._domain.www = '//local.dailymotion.com';
-// DM._domain.www = '//localhost:9090';
+//DM._domain.www = '//localhost:9090';
 
 let params = {};
 const video = 'x730nnd';
@@ -107,6 +107,10 @@ const playerbis = DM.player(document.getElementById('playerbis'), {
     params,
     width: '10%',
     height: '10%',
+    events: [
+        { 'play': function() { console.log('play'); }},
+        { 'pause': function() { console.log('pause'); }},
+    ]
 });
 
 
