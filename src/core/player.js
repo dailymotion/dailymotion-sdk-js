@@ -35,12 +35,11 @@ DM.provide('',
     destroy: function(id)
     {
         if (id === undefined) {  // destroy all players of the page
-            Object.keys(DM.Player._INSTANCES).forEach(function(id)
-            {
-                DM.Player.destroy(id)
-            });
+            for (var key in DM.Player._INSTANCES) {
+                DM.Player.destroy(key);
+            }
         } else if (DM.Player._INSTANCES[id] !== undefined) {  // destroy a player by its id
-            DM.Player.destroy(id)
+            DM.Player.destroy(id);
         }
     }
 });
@@ -174,16 +173,18 @@ DM.provide('Player',
     {
         var player = DM.Player._INSTANCES[id];
         var anchor = DM.Player._ANCHORS[id];
-        
+
         // remove options events listeners
-        DM.Player._EVENTS[id].forEach(function(event)
+        DM.Array.forEach(DM.Player._EVENTS[id], function(event)
         {
-            var name = Object.keys(event)[0]
+            var name = DM.Array.keys(event)[0]
             player.removeEventListener(name, event[name], false);
         });
-        
+
         player.parentNode.replaceChild(anchor, player);  // replace the iframe by its initial anchor
         delete DM.Player._INSTANCES[id];  // remove player instance
+        delete DM.Player._ANCHORS[id];  // remove anchor of player instance
+        delete DM.Player._EVENTS[id];  // remove events of player instance
     },
 
     _getPathname: function(video, playlist)
@@ -226,7 +227,11 @@ DM.provide('Player',
             DM.Player._INSTANCES[this.id] = this;
             DM.Player._EVENTS[this.id] = events;
             DM.Player._ANCHORS[this.id] = element;
-            this.addEventListener('unload', function() {delete DM.Player._INSTANCES[this.id];});
+            this.addEventListener('unload', function() {
+                delete DM.Player._INSTANCES[this.id];
+                delete DM.Player._ANCHORS[this.id];
+                delete DM.Player._EVENTS[this.id];
+            });
         }
 
         this.autoplay = DM.parseBool(params.autoplay);
@@ -239,6 +244,7 @@ DM.provide('Player',
         {
             DM.Player.API_MODE = "postMessage";
 
+            console.log('Handler is always OK when you Destroy/Create but KO when you Play via button/Destroy/Re-create')
             var handler = function(e)
             {
                 var originDomain = e.origin ? e.origin.replace(/^https?:/, '') : null;
@@ -247,6 +253,7 @@ DM.provide('Player',
                   DM.Player._IFRAME_ORIGIN = e.origin
                 }
                 var event = DM.Player._decodePostMessage(e.data);
+                console.log('handler', event.event)
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
                 player._recvEvent(event);
