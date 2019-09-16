@@ -26,8 +26,12 @@
         input[type=button]:hover, button:hover {
             background: #efefef
         }
-        #player {
+        #player1 {
             height: 350px;
+            width: 100%
+        }
+        #player2, #player3 {
+            height: 25px;
             width: 100%
         }
         #progress, #duration {
@@ -89,10 +93,14 @@
     <script src="../src/core/auth.js"></script>
 </head>
 <body>
-    <div id="player"></div>
+    <div id="player1"></div>
+    <div id="player2"></div>
+    <div id="player3"></div>
+    
     <div id="controls">
         <div>
-            <button id="create-player">Create Player</button> / <button id="destroy-player">Destroy Player</button>
+            <input type=button value=create prompt="ID" default=player2>
+            <input type=button value=destroy prompt="ID" default=player1>
         </div>
         <div>
             <input type=button value=toggle-play>
@@ -145,8 +153,8 @@
         const statusEl = document.getElementById('status');
         let player;
 
-        function createPlayer() {
-            player = DM.player(document.getElementById('player'), {
+        function createPlayer(id) {
+            player = DM.player(document.getElementById(id), {
                 video,
                 params: {},
                 width: '100%',
@@ -184,18 +192,14 @@
                 if (cmd === 'load' && !autoplayEl.checked) {
                     params.push({ autoplay: false });
                 }
-                player.api.apply(player, params);
-            }
-        }
-
-        function handleButton(e) {
-            const id = e.target.id;
-            if (player && id === 'destroy-player') {
-                DM.destroy('player');
-                player = null;
-            }
-            if (!player && id === 'create-player') {
-                createPlayer();
+                if (cmd === 'destroy') {
+                    DM.destroy(arg);
+                }
+                else if (cmd === 'create') {
+                    createPlayer(arg);
+                } else {
+                    player.api.apply(player, params);
+                }
             }
         }
 
@@ -279,7 +283,7 @@
             }
         }
 
-        createPlayer();
+        createPlayer('player1');
 
         document.querySelector('input[name=html]').addEventListener('change', function(e){
             const params = {};
@@ -307,9 +311,6 @@
 
         document.querySelectorAll('input[type=button]').forEach(input => {
             input.addEventListener('click', handleClick);
-        });
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('click', handleButton);
         });
     </script>
 </body>

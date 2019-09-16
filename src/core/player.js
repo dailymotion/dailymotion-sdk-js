@@ -29,16 +29,30 @@ DM.provide('',
 {
     player: function(element, options)
     {
+        element = DM.$(element);
+        if (DM.Player._INSTANCES[element.id] !== undefined)
+            throw new Error("Invalid first argument sent to DM.destroy(), this element is already a player: " + element.id);
+        if (!element || element.nodeType !== Node.ELEMENT_NODE)
+            throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element.id);
+        if (!options || typeof options !== 'object')
+            throw new Error("Missing `options' parameter for DM.player()");
+
         return DM.Player.create(element, options);
     },
 
     destroy: function(id)
     {
-        if (id === undefined) {  // destroy all players of the page
+        if (!id) {  // destroy all players of the page
+            if (DM.Array.keys(DM.Player._INSTANCES).length === 0)
+                throw new Error("DM.destroy(): no player to destroy");
+
             for (var key in DM.Player._INSTANCES) {
                 DM.Player.destroy(key);
             }
-        } else if (DM.Player._INSTANCES[id] !== undefined) {  // destroy a player by its id
+        } else {  // destroy a single player
+            if (DM.Player._INSTANCES[id] === undefined)
+                throw new Error("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
+
             DM.Player.destroy(id);
         }
     }
@@ -108,12 +122,6 @@ DM.provide('Player',
 
     create: function(element, options)
     {
-        element = DM.$(element);
-        if (!element || element.nodeType != 1)
-            throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element);
-        if (!options || typeof options != 'object')
-            throw new Error("Missing `options' parameter for DM.player()");
-
         options = DM.copy(options,
         {
             width: 480,
@@ -177,7 +185,7 @@ DM.provide('Player',
         // remove options events listeners
         DM.Array.forEach(DM.Player._EVENTS[id], function(event)
         {
-            var name = DM.Array.keys(event)[0]
+            var name = DM.Array.keys(event)[0];
             player.removeEventListener(name, event[name], false);
         });
 
