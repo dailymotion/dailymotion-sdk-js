@@ -143,13 +143,12 @@
         const progressEl = document.getElementById('progress');
         const durationEl = document.getElementById('duration');
         const statusEl = document.getElementById('status');
-        let params = {};
         let player;
 
         function createPlayer() {
             player = DM.player(document.getElementById('player'), {
                 video,
-                params,
+                params: {},
                 width: '100%',
                 height: '100%',
                 events: {
@@ -171,6 +170,7 @@
             if (player) {
                 const cmd = e.target.value;
                 let arg;
+                let params;
                 const message = e.target.getAttribute('prompt');
                 const defaultVal = e.target.getAttribute('default');
                 if (message) {
@@ -282,6 +282,7 @@
         createPlayer();
 
         document.querySelector('input[name=html]').addEventListener('change', function(e){
+            const params = {};
             if (player) {
                 params.html = e.target.checked ? '1' : '0';
                 player.init(video, params);
@@ -290,6 +291,7 @@
         });
 
         document.querySelector('input[name=empty]').addEventListener('change', function(e){
+            const params = {};
             if (player) {
                 const v = e.target.checked ? undefined : video;
                 player.init(v, params);

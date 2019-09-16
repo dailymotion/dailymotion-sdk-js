@@ -244,18 +244,17 @@ DM.provide('Player',
         {
             DM.Player.API_MODE = "postMessage";
 
-            console.log('Handler is always OK when you Destroy/Create but KO when you Play via button/Destroy/Re-create')
             var handler = function(e)
             {
                 var originDomain = e.origin ? e.origin.replace(/^https?:/, '') : null;
                 if (!originDomain || originDomain.indexOf(DM._domain.www) !== 0) return;
                 if (!DM.Player._IFRAME_ORIGIN) {
-                  DM.Player._IFRAME_ORIGIN = e.origin
+                  DM.Player._IFRAME_ORIGIN = e.origin;
                 }
                 var event = DM.Player._decodePostMessage(e.data);
-                console.log('handler', event.event)
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
+                if (!player) return;
                 player._recvEvent(event);
             };
             if (window.addEventListener) window.addEventListener("message", handler, false);
