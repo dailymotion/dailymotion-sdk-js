@@ -26,12 +26,7 @@
         input[type=button]:hover, button:hover {
             background: #efefef
         }
-        #player1 {
-            height: 350px;
-            width: 100%
-        }
-        #player2, #player3 {
-            height: 25px;
+        #player1, #player2, #player3 {
             width: 100%
         }
         #progress, #duration {
@@ -96,7 +91,7 @@
     <div id="player1"></div>
     <div id="player2"></div>
     <div id="player3"></div>
-    
+
     <div id="controls">
         <div>
             <input type=button value=create prompt="ID" default=player2>
@@ -157,8 +152,6 @@
             player = DM.player(document.getElementById(id), {
                 video,
                 params: {},
-                width: '100%',
-                height: '100%',
                 events: {
                     play: function() { console.log('play'); },
                     pause: function() { console.log('pause'); }

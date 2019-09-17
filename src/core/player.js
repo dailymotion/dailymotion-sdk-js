@@ -30,12 +30,12 @@ DM.provide('',
     player: function(element, options)
     {
         element = DM.$(element);
-        if (DM.Player._INSTANCES[element.id] !== undefined)
-            throw new Error("Invalid first argument sent to DM.destroy(), this element is already a player: " + element.id);
         if (!element || element.nodeType !== Node.ELEMENT_NODE)
-            throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element.id);
+            throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element);
+        if (element.nodeName === 'IFRAME' || DM.Player._INSTANCES[element.id] !== undefined)
+            throw new Error("Invalid first argument sent to DM.player(), this element is already a player: " + element.id);
         if (!options || typeof options !== 'object')
-            throw new Error("Missing `options' parameter for DM.player()");
+            throw new Error("Missing 'options' parameter for DM.player()");
 
         return DM.Player.create(element, options);
     },
@@ -286,16 +286,14 @@ DM.provide('Player',
 
     _send: function(command, parameters)
     {
-        if (!this.apiReady) {
-            try {
-                if (console && typeof console.warn === 'function') {
-                    console.warn('Player not ready. Ignoring command : "'+command+'"');
-                }
-            } catch (e) {}
-            return;
-        }
+        if (!this.apiReady)
+            throw new Error('Player not ready. Ignoring command : "'+command+'"');
+
         if (DM.Player.API_MODE == 'postMessage')
         {
+            if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function')
+                throw new Error('Player not reachable anymore. You may have destroyed it.');
+
             this.contentWindow.postMessage(JSON.stringify({
                 command    : command,
                 parameters : parameters || []
