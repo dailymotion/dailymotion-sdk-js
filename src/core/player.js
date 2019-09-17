@@ -262,7 +262,7 @@ DM.provide('Player',
                 var event = DM.Player._decodePostMessage(e.data);
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
-                if (!player) return;
+                if (!player || typeof player._recvEvent !== 'function') return;
                 player._recvEvent(event);
             };
             if (window.addEventListener) window.addEventListener("message", handler, false);
