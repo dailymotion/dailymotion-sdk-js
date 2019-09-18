@@ -29,7 +29,32 @@ DM.provide('',
 {
     player: function(element, options)
     {
+        element = DM.$(element);
+        if (!element || element.nodeType !== Node.ELEMENT_NODE)
+            throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element);
+        if (element.nodeName === 'IFRAME' || DM.Player._INSTANCES[element.id] !== undefined)
+            throw new Error("Invalid first argument sent to DM.player(), this element is already a player: " + element.id);
+        if (!options || typeof options !== 'object')
+            throw new Error("Missing 'options' parameter for DM.player()");
+
         return DM.Player.create(element, options);
+    },
+
+    destroy: function(id)
+    {
+        if (!id) {  // destroy all players of the page
+            if (DM.Array.keys(DM.Player._INSTANCES).length === 0)
+                throw new Error("DM.destroy(): no player to destroy");
+
+            for (var key in DM.Player._INSTANCES) {
+                DM.Player.destroy(key);
+            }
+        } else {  // destroy a single player
+            if (DM.Player._INSTANCES[id] === undefined)
+                throw new Error("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
+
+            DM.Player.destroy(id);
+        }
     }
 });
 
@@ -43,6 +68,8 @@ DM.provide('Player',
 {
     _IFRAME_ORIGIN: null,
     _INSTANCES: {},
+    _EVENTS: {},
+    _ANCHORS: {},
     _INTERVAL_ID: null,
     _PROTOCOL: null,
     API_MODE: null,
@@ -95,12 +122,6 @@ DM.provide('Player',
 
     create: function(element, options)
     {
-        element = DM.$(element);
-        if (!element || element.nodeType != 1)
-            throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element);
-        if (!options || typeof options != 'object')
-            throw new Error("Missing `options' parameter for DM.player()");
-
         options = DM.copy(options,
         {
             width: 480,
@@ -143,7 +164,7 @@ DM.provide('Player',
 
         DM.copy(player, DM.Player);
 
-        player.init(options.video, options.params, options.playlist);
+        player.init(options.video, options.params, options.playlist, options.events, element);
 
         if (typeof options.events == "object")
         {
@@ -154,6 +175,24 @@ DM.provide('Player',
         }
 
         return player;
+    },
+
+    destroy: function(id)
+    {
+        var player = DM.Player._INSTANCES[id];
+        var anchor = DM.Player._ANCHORS[id];
+
+        // remove options events listeners
+        DM.Array.forEach(DM.Player._EVENTS[id], function(event)
+        {
+            var name = DM.Array.keys(event)[0];
+            player.removeEventListener(name, event[name], false);
+        });
+
+        player.parentNode.replaceChild(anchor, player);  // replace the iframe by its initial anchor
+        delete DM.Player._INSTANCES[id];  // remove player instance
+        delete DM.Player._ANCHORS[id];  // remove anchor of player instance
+        delete DM.Player._EVENTS[id];  // remove events of player instance
     },
 
     _getPathname: function(video, playlist)
@@ -167,7 +206,7 @@ DM.provide('Player',
         return "/embed"
     },
 
-    init: function(video, params, playlist)
+    init: function(video, params, playlist, events, element)
     {
         var self = this;
         DM.Player._installHandlers();
@@ -194,7 +233,13 @@ DM.provide('Player',
         if (DM.Player._INSTANCES[this.id] != this)
         {
             DM.Player._INSTANCES[this.id] = this;
-            this.addEventListener('unload', function() {delete DM.Player._INSTANCES[this.id];});
+            DM.Player._EVENTS[this.id] = events;
+            DM.Player._ANCHORS[this.id] = element;
+            this.addEventListener('unload', function() {
+                delete DM.Player._INSTANCES[this.id];
+                delete DM.Player._ANCHORS[this.id];
+                delete DM.Player._EVENTS[this.id];
+            });
         }
 
         this.autoplay = DM.parseBool(params.autoplay);
@@ -212,11 +257,12 @@ DM.provide('Player',
                 var originDomain = e.origin ? e.origin.replace(/^https?:/, '') : null;
                 if (!originDomain || originDomain.indexOf(DM._domain.www) !== 0) return;
                 if (!DM.Player._IFRAME_ORIGIN) {
-                  DM.Player._IFRAME_ORIGIN = e.origin
+                  DM.Player._IFRAME_ORIGIN = e.origin;
                 }
                 var event = DM.Player._decodePostMessage(e.data);
                 if (!event.id || !event.event) return;
                 var player = DM.$(event.id);
+                if (!player || typeof player._recvEvent !== 'function') return;
                 player._recvEvent(event);
             };
             if (window.addEventListener) window.addEventListener("message", handler, false);
@@ -240,16 +286,14 @@ DM.provide('Player',
 
     _send: function(command, parameters)
     {
-        if (!this.apiReady) {
-            try {
-                if (console && typeof console.warn === 'function') {
-                    console.warn('Player not ready. Ignoring command : "'+command+'"');
-                }
-            } catch (e) {}
-            return;
-        }
+        if (!this.apiReady)
+            throw new Error('Player not ready. Ignoring command : "'+command+'"');
+
         if (DM.Player.API_MODE == 'postMessage')
         {
+            if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function')
+                throw new Error('Player not reachable anymore. You may have destroyed it.');
+
             this.contentWindow.postMessage(JSON.stringify({
                 command    : command,
                 parameters : parameters || []
