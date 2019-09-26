@@ -32,10 +32,12 @@ DM.provide('',
         element = DM.$(element);
         if (!element || element.nodeType !== Node.ELEMENT_NODE)
             throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element);
-        if (element.nodeName === 'IFRAME' || DM.Player._INSTANCES[element.id] !== undefined)
-            throw new Error("Invalid first argument sent to DM.player(), this element is already a player: " + element.id);
         if (!options || typeof options !== 'object')
             throw new Error("Missing 'options' parameter for DM.player()");
+
+        if (DM.Player._INSTANCES[element.id] !== undefined) {
+            element = DM.Player.destroy(element.id);
+        }
 
         return DM.Player.create(element, options);
     },
@@ -193,6 +195,7 @@ DM.provide('Player',
         delete DM.Player._INSTANCES[id];  // remove player instance
         delete DM.Player._ANCHORS[id];  // remove anchor of player instance
         delete DM.Player._EVENTS[id];  // remove events of player instance
+        return anchor;
     },
 
     _getPathname: function(video, playlist)
