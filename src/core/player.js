@@ -35,10 +35,6 @@ DM.provide('',
         if (!options || typeof options !== 'object')
             throw new Error("Missing 'options' parameter for DM.player()");
 
-        if (DM.Player._INSTANCES[element.id] !== undefined) {
-            element = DM.Player.destroy(element.id);
-        }
-
         return DM.Player.create(element, options);
     },
 
@@ -195,7 +191,6 @@ DM.provide('Player',
         delete DM.Player._INSTANCES[id];  // remove player instance
         delete DM.Player._ANCHORS[id];  // remove anchor of player instance
         delete DM.Player._EVENTS[id];  // remove events of player instance
-        return anchor;
     },
 
     _getPathname: function(video, playlist)
