@@ -32,8 +32,6 @@ DM.provide('',
         element = DM.$(element);
         if (!element || element.nodeType !== Node.ELEMENT_NODE)
             throw new Error("Invalid first argument sent to DM.player(), requires a HTML element or element id: " + element);
-        if (element.nodeName === 'IFRAME' || DM.Player._INSTANCES[element.id] !== undefined)
-            throw new Error("Invalid first argument sent to DM.player(), this element is already a player: " + element.id);
         if (!options || typeof options !== 'object')
             throw new Error("Missing 'options' parameter for DM.player()");
 
