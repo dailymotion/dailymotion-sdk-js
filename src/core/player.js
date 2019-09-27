@@ -42,11 +42,7 @@ DM.provide('',
     {
         if (!id) {  // destroy all players of the page
             if (DM.Array.keys(DM.Player._INSTANCES).length === 0) {
-                try {
-                    if (console && typeof console.warn === 'function') {
-                        console.warn("DM.destroy(): no player to destroy");
-                    }
-                } catch (e) {}
+                DM.warn("DM.destroy(): no player to destroy");
                 return;
             }
 
@@ -55,11 +51,7 @@ DM.provide('',
             }
         } else {  // destroy a single player
             if (DM.Player._INSTANCES[id] === undefined) {
-                try {
-                    if (console && typeof console.warn === 'function') {
-                        console.warn("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
-                    }
-                } catch (e) {}
+                DM.warn("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
                 return;
             }
 
@@ -297,22 +289,14 @@ DM.provide('Player',
     _send: function(command, parameters)
     {
         if (!this.apiReady) {
-            try {
-                if (console && typeof console.warn === 'function') {
-                    console.warn('Player not ready. Ignoring command : "'+command+'"');
-                }
-            } catch (e) {}
+            DM.warn('Player not ready. Ignoring command : "'+command+'"');
             return;
         }
 
         if (DM.Player.API_MODE == 'postMessage')
         {
             if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function') {
-                try {
-                    if (console && typeof console.warn === 'function') {
-                        console.warn('Player not reachable anymore. You may have destroyed it.');
-                    }
-                } catch (e) {}
+                DM.warn('Player not reachable anymore. You may have destroyed it.');
                 return;
             }
 

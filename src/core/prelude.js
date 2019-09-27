@@ -226,6 +226,21 @@ if (!window.DM)
         },
 
         /**
+         * Display a warning message in console.
+         *
+         * @access private
+         * @param msg {string} message to warn in console
+         */
+        warn: function(msg)
+        {
+            try {
+                if (console && typeof console.warn === 'function') {
+                    console.warn(msg);
+                }
+            } catch (e) {}
+        },
+
+        /**
          * Shortcut for document.getElementById
          * @method $
          * @param {string} DOM id
