@@ -41,15 +41,19 @@ DM.provide('',
     destroy: function(id)
     {
         if (!id) {  // destroy all players of the page
-            if (DM.Array.keys(DM.Player._INSTANCES).length === 0)
-                throw new Error("DM.destroy(): no player to destroy");
+            if (DM.Array.keys(DM.Player._INSTANCES).length === 0) {
+                DM.warn("DM.destroy(): no player to destroy");
+                return;
+            }
 
             for (var key in DM.Player._INSTANCES) {
                 DM.Player.destroy(key);
             }
         } else {  // destroy a single player
-            if (DM.Player._INSTANCES[id] === undefined)
-                throw new Error("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
+            if (DM.Player._INSTANCES[id] === undefined) {
+                DM.warn("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
+                return;
+            }
 
             DM.Player.destroy(id);
         }
@@ -284,13 +288,17 @@ DM.provide('Player',
 
     _send: function(command, parameters)
     {
-        if (!this.apiReady)
-            throw new Error('Player not ready. Ignoring command : "'+command+'"');
+        if (!this.apiReady) {
+            DM.warn('Player not ready. Ignoring command : "'+command+'"');
+            return;
+        }
 
         if (DM.Player.API_MODE == 'postMessage')
         {
-            if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function')
-                throw new Error('Player not reachable anymore. You may have destroyed it.');
+            if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function') {
+                DM.warn('Player not reachable anymore. You may have destroyed it.');
+                return;
+            }
 
             this.contentWindow.postMessage(JSON.stringify({
                 command    : command,
