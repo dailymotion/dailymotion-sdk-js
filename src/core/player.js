@@ -41,15 +41,27 @@ DM.provide('',
     destroy: function(id)
     {
         if (!id) {  // destroy all players of the page
-            if (DM.Array.keys(DM.Player._INSTANCES).length === 0)
-                throw new Error("DM.destroy(): no player to destroy");
+            if (DM.Array.keys(DM.Player._INSTANCES).length === 0) {
+                try {
+                    if (console && typeof console.warn === 'function') {
+                        console.warn("DM.destroy(): no player to destroy");
+                    }
+                } catch (e) {}
+                return;
+            }
 
             for (var key in DM.Player._INSTANCES) {
                 DM.Player.destroy(key);
             }
         } else {  // destroy a single player
-            if (DM.Player._INSTANCES[id] === undefined)
-                throw new Error("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
+            if (DM.Player._INSTANCES[id] === undefined) {
+                try {
+                    if (console && typeof console.warn === 'function') {
+                        console.warn("Invalid first argument sent to DM.destroy(), requires a player id: " + id);
+                    }
+                } catch (e) {}
+                return;
+            }
 
             DM.Player.destroy(id);
         }
@@ -284,13 +296,25 @@ DM.provide('Player',
 
     _send: function(command, parameters)
     {
-        if (!this.apiReady)
-            throw new Error('Player not ready. Ignoring command : "'+command+'"');
+        if (!this.apiReady) {
+            try {
+                if (console && typeof console.warn === 'function') {
+                    console.warn('Player not ready. Ignoring command : "'+command+'"');
+                }
+            } catch (e) {}
+            return;
+        }
 
         if (DM.Player.API_MODE == 'postMessage')
         {
-            if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function')
-                throw new Error('Player not reachable anymore. You may have destroyed it.');
+            if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function') {
+                try {
+                    if (console && typeof console.warn === 'function') {
+                        console.warn('Player not reachable anymore. You may have destroyed it.');
+                    }
+                } catch (e) {}
+                return;
+            }
 
             this.contentWindow.postMessage(JSON.stringify({
                 command    : command,
