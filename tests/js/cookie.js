@@ -2,110 +2,98 @@ module('cookie');
 
 var cookieApiKey = 'fakeapikey';
 
-test('clear existing cookie if necessary', function()
-{
-    var origApiKey = DM._apiKey;
-    DM._apiKey = cookieApiKey;
-    DM.Cookie.clear();
-    ok(true, 'cookie cleared without errors');
-    DM._apiKey = origApiKey;
+test('clear existing cookie if necessary', function() {
+  var origApiKey = DM._apiKey;
+  DM._apiKey = cookieApiKey;
+  DM.Cookie.clear();
+  ok(true, 'cookie cleared without errors');
+  DM._apiKey = origApiKey;
 });
 
-test('load cookie that doesnt exist', function()
-{
-    var origApiKey = DM._apiKey;
-    DM._apiKey = cookieApiKey;
+test('load cookie that doesnt exist', function() {
+  var origApiKey = DM._apiKey;
+  DM._apiKey = cookieApiKey;
 
-    ok(!DM.Cookie.load(), 'should not get a cookie');
+  ok(!DM.Cookie.load(), 'should not get a cookie');
 
-    DM._apiKey = origApiKey;
+  DM._apiKey = origApiKey;
 });
 
-test('set a cookie, load and delete it', function()
-{
-    var origApiKey = DM._apiKey;
-    DM._apiKey = cookieApiKey;
+test('set a cookie, load and delete it', function() {
+  var origApiKey = DM._apiKey;
+  DM._apiKey = cookieApiKey;
 
-    DM.Cookie.set
-    ({
-        expires: (1000000 + (+new Date())) / 1000,
-        base_domain: document.domain,
-        answer: 42
-    });
-    ok(document.cookie.match('dms_' + cookieApiKey), 'found in document.cookie');
-    ok(DM.Cookie.load().answer == 42, 'found the answer');
-    DM.Cookie.clear();
-    ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
-    ok(!DM.Cookie.load(), 'no cookie loaded');
+  DM.Cookie.set({
+    expires: (1000000 + +new Date()) / 1000,
+    base_domain: document.domain,
+    answer: 42,
+  });
+  ok(document.cookie.match('dms_' + cookieApiKey), 'found in document.cookie');
+  ok(DM.Cookie.load().answer == 42, 'found the answer');
+  DM.Cookie.clear();
+  ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
+  ok(!DM.Cookie.load(), 'no cookie loaded');
 
-    DM._apiKey = origApiKey;
-  }
-);
-
-test('set an expired cookie and load it', function()
-{
-    var origApiKey = DM._apiKey;
-    DM._apiKey = cookieApiKey;
-
-    DM.Cookie.set
-    ({
-        expires: ((+new Date()) - 10000) / 1000,
-        base_domain: document.domain,
-        answer: 42
-    });
-    ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
-    ok(!DM.Cookie.load(), 'no cookie loaded');
-
-    DM._apiKey = origApiKey;
+  DM._apiKey = origApiKey;
 });
 
-test('set malformed cookie, load and delete it', function()
-{
-    var origApiKey = DM._apiKey;
-    DM._apiKey = cookieApiKey;
+test('set an expired cookie and load it', function() {
+  var origApiKey = DM._apiKey;
+  DM._apiKey = cookieApiKey;
 
-    var malformedCookie = JSON.stringify({"SLT":"%'lV9Z","UID":""});
-    DM.Cookie.set
-    ({
-        expires: (1000000 + (+new Date())) / 1000,
-        base_domain: document.domain,
-        answer: malformedCookie
-    });
-    ok(document.cookie.match('dms_' + cookieApiKey), 'found in document.cookie');
-    ok(DM.Cookie.load().answer == malformedCookie, 'found the answer');
-    DM.Cookie.clear();
-    ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
-    ok(!DM.Cookie.load(), 'no cookie loaded');
+  DM.Cookie.set({
+    expires: (+new Date() - 10000) / 1000,
+    base_domain: document.domain,
+    answer: 42,
+  });
+  ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
+  ok(!DM.Cookie.load(), 'no cookie loaded');
 
-    DM._apiKey = origApiKey;
-  }
-);
+  DM._apiKey = origApiKey;
+});
 
-test('set a malformed cookie value, session cookie should still work normally', function()
-{
-    var origApiKey = DM._apiKey;
-    DM._apiKey = cookieApiKey;
+test('set malformed cookie, load and delete it', function() {
+  var origApiKey = DM._apiKey;
+  DM._apiKey = cookieApiKey;
 
-    var malformedCookie = JSON.stringify({"SLT":"%'lV9Z","UID":""});
+  var malformedCookie = JSON.stringify({ SLT: "%'lV9Z", UID: '' });
+  DM.Cookie.set({
+    expires: (1000000 + +new Date()) / 1000,
+    base_domain: document.domain,
+    answer: malformedCookie,
+  });
+  ok(document.cookie.match('dms_' + cookieApiKey), 'found in document.cookie');
+  ok(DM.Cookie.load().answer == malformedCookie, 'found the answer');
+  DM.Cookie.clear();
+  ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
+  ok(!DM.Cookie.load(), 'no cookie loaded');
 
-    DM.Cookie.set
-    ({
-        expires: ((+new Date()) + 10000) / 1000,
-        base_domain: document.domain,
-        answer: 42
-    });
+  DM._apiKey = origApiKey;
+});
 
-    document.cookie = 'malformed="' + malformedCookie + '"';
+test('set a malformed cookie value, session cookie should still work normally', function() {
+  var origApiKey = DM._apiKey;
+  DM._apiKey = cookieApiKey;
 
-    ok(document.cookie.match('dms_' + cookieApiKey), 'found dm cookie in document.cookie');
-    ok(document.cookie.match('malformed'), 'found malformed cookie in document.cookie');
+  var malformedCookie = JSON.stringify({ SLT: "%'lV9Z", UID: '' });
 
-    ok(DM.Cookie.load().answer == 42, 'found the answer');
+  DM.Cookie.set({
+    expires: (+new Date() + 10000) / 1000,
+    base_domain: document.domain,
+    answer: 42,
+  });
 
-    DM.Cookie.clear();
-    document.cookie = 'malformed=""';
-    ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
-    ok(!DM.Cookie.load(), 'no cookie loaded');
+  document.cookie = 'malformed="' + malformedCookie + '"';
 
-    DM._apiKey = origApiKey;
+  ok(document.cookie.match('dms_' + cookieApiKey), 'found dm cookie in document.cookie');
+  ok(document.cookie.match('malformed'), 'found malformed cookie in document.cookie');
+
+  ok(DM.Cookie.load().answer == 42, 'found the answer');
+
+  DM.Cookie.clear();
+  document.cookie = 'malformed=""';
+  ok(!document.cookie.match('dms_' + cookieApiKey), 'not found in document.cookie');
+  ok(!DM.Cookie.load(), 'no cookie loaded');
+
+  DM._apiKey = origApiKey;
 });

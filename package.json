@@ -10,7 +10,12 @@
     "yargs": "^14.0.0",
     "yuicompressor": "^2.4.8"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "husky": "^3.0.8",
+    "lint-staged": "^9.4.1",
+    "prettier": "^1.18.2",
+    "yuglify": "1.0.1"
+  },
   "sourceFiles": {
     "all": [
       "src/third-party/json2.js",
@@ -33,5 +38,16 @@
       "src/core/epilogue.js",
       "src/core/qs.js"
     ]
+  },
+  "husky": {
+      "hooks": {
+          "pre-commit": "lint-staged"
+      }
+  },
+  "lint-staged": {
+      "*.{js,css,md}": [
+          "prettier --write",
+          "git add"
+      ]
   }
 }
