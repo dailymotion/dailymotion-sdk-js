@@ -27,6 +27,7 @@ init:
 .PHONY: build
 build:
 	$(COMPOSE) build app
+	$(COMPOSE) run app
 
 .PHONY: down
 down:

@@ -25,7 +25,7 @@ COPY src /usr/src/app/src
 
 RUN npm run build
 
-# Package it for later deployment
+# Package it for later deployment, files must end up at /usr/build/sdk_js.tar.gz
 RUN mkdir -p /usr/build
 RUN tar -czvf /usr/build/sdk_js.tar.gz \
   -C /usr/src/app/dist .

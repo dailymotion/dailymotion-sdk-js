@@ -2,4 +2,8 @@ version: '3'
 services:
   app:
     build: .
-    network_mode: bridge
+    networks:
+      - ns
+    command: cp /usr/build/sdk_js.tar.gz /tmp/export
+    volumes:
+      - ./build:/tmp/export
