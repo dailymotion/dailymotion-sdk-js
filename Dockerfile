@@ -23,4 +23,9 @@ COPY src /usr/src/app/src
 
 # Run!
 
-CMD ["npm", "run", "build"]
+RUN npm run build
+
+# Package it for later deployment
+RUN mkdir -p /usr/build
+RUN tar -czvf /usr/build/sdk_js.tar.gz \
+  -C /usr/src/app/dist .
