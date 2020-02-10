@@ -151,7 +151,29 @@ DM.provide('Player',
         // see #5 : _domain.www should be protocol independent
         // remove protocol from existing value to preserve backward compatibility
         DM._domain.www = DM._domain.www.replace(/^https?\:/, '');
-        DM.Player._PROTOCOL = (window.location && /^https?:$/.test(window.location.protocol)) ? window.location.protocol : 'http:';
+
+        var location = null;
+
+        try {
+            try {
+              // try to get the top location first
+              location = window.top.location.href;
+            }
+            catch(e) {
+              // if not last ancestor
+              var ancestorOrigins = window.location.ancestorOrigins;
+              location = ancestorOrigins[ancestorOrigins.length - 1];
+            }
+        }
+        catch(e) {
+          // current window.location fallback
+          if (window.location) {
+              location = window.location.href;
+          }
+        }
+
+        var matchingProtocol = /^https?:/.exec(location);
+        DM.Player._PROTOCOL = matchingProtocol ? matchingProtocol[0] : 'https:';
 
         var player = document.createElement("iframe");
         DM.Array.forEach(['id', 'style', 'class'], function(attr)
