@@ -77,7 +77,6 @@ DM.provide('Player',
     _EVENTS: {},
     _ANCHORS: {},
     _INTERVAL_ID: null,
-    _PROTOCOL: null,
     API_MODE: null,
     EVENT_HANDLERS: {},
 
@@ -151,29 +150,6 @@ DM.provide('Player',
         // see #5 : _domain.www should be protocol independent
         // remove protocol from existing value to preserve backward compatibility
         DM._domain.www = DM._domain.www.replace(/^https?\:/, '');
-
-        var topLocation = null;
-
-        try {
-            try {
-              // try to get the top location first
-              topLocation = window.top.location.href;
-            }
-            catch(e) {
-              // if not last ancestor location
-              var ancestorOrigins = window.location.ancestorOrigins;
-              topLocation = ancestorOrigins[ancestorOrigins.length - 1];
-            }
-        }
-        catch(e) {
-          // fallback on current location
-          if (window.location) {
-              topLocation = window.location.href;
-          }
-        }
-
-        var matchingProtocol = /^https?:/.exec(topLocation);
-        DM.Player._PROTOCOL = matchingProtocol ? matchingProtocol[0] : 'https:';
 
         var player = document.createElement("iframe");
         DM.Array.forEach(['id', 'style', 'class'], function(attr)
@@ -258,7 +234,7 @@ DM.provide('Player',
         }
 
         this.id = params.id = this.id ? this.id : DM.guid();
-        this.src = DM.Player._PROTOCOL + DM._domain.www + this._getPathname(video, playlist) + '?' + DM.QS.encode(params);
+        this.src = 'https:' + DM._domain.www + this._getPathname(video, playlist) + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
         {
             DM.Player._INSTANCES[this.id] = this;
