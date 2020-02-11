@@ -152,27 +152,27 @@ DM.provide('Player',
         // remove protocol from existing value to preserve backward compatibility
         DM._domain.www = DM._domain.www.replace(/^https?\:/, '');
 
-        var location = null;
+        var topLocation = null;
 
         try {
             try {
               // try to get the top location first
-              location = window.top.location.href;
+              topLocation = window.top.location.href;
             }
             catch(e) {
-              // if not last ancestor
+              // if not last ancestor location
               var ancestorOrigins = window.location.ancestorOrigins;
-              location = ancestorOrigins[ancestorOrigins.length - 1];
+              topLocation = ancestorOrigins[ancestorOrigins.length - 1];
             }
         }
         catch(e) {
-          // current window.location fallback
+          // fallback on current location
           if (window.location) {
-              location = window.location.href;
+              topLocation = window.location.href;
           }
         }
 
-        var matchingProtocol = /^https?:/.exec(location);
+        var matchingProtocol = /^https?:/.exec(topLocation);
         DM.Player._PROTOCOL = matchingProtocol ? matchingProtocol[0] : 'https:';
 
         var player = document.createElement("iframe");
