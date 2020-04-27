@@ -66,7 +66,9 @@ DM.provide('QS',
     decode: function(str)
     {
         var qsParams = str.split('&');
-        var decode = decodeURIComponent;
+        var decode = function(string) {
+            return decodeURIComponent(string.replace(/\+/g, ' '));
+        }
 
         var params = {};
 

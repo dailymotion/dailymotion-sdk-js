@@ -50,11 +50,19 @@ test('decoding nested named value', function()
     ok(actual === expected);
 });
 
-test('decoding named value with spaces in name and value', function()
+test('decoding named value with spaces in name and value that were serialized as %20', function()
 {
     // a b c=d e f
     var encoded = 'a%20b%20c=d%20e%20f';
     var expected = JSON.stringify({ 'a b c': 'd e f' })
+    var actual = JSON.stringify(DM.QS.decode(encoded))
+    ok(actual === expected)
+});
+
+test('decoding value with spaces that was serialized as +', function()
+{
+    var encoded = 'user_agent=Mozilla%2F5.0+(Windows+NT+10.0%3B+Win64%3B+x64)+AppleWebKit%2F537.36+(KHTML%2C+like+Gecko)+Chrome%2F81.0.4044.122+Safari%2F537.36';
+    var expected = JSON.stringify({user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36'})
     var actual = JSON.stringify(DM.QS.decode(encoded))
     ok(actual === expected)
 });
