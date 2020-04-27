@@ -278,6 +278,7 @@ DM.provide('Player',
     _decodePostMessage: function(rawMessage)
     {
       if (rawMessage.substring(0, 1) === '{') {
+        // apimode = json
         try {
           var data = JSON.parse(rawMessage);
           return data;
@@ -285,8 +286,10 @@ DM.provide('Player',
         catch(e) {
           return {};
         }
+      } else {
+        // apimode = queryString
+        return DM.QS.decode(rawMessage);
       }
-      return DM.QS.decode(rawMessage);
     },
 
     _send: function(command, parameters)
