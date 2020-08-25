@@ -117,6 +117,7 @@ DM.provide('Player',
     setControls: function (visible) { this.api('controls', visible);},
     toggleControls: function () { this.api('toggle-controls');},
     setProp: function() {this.api.apply(this, ['set-prop'].concat([].slice.call(arguments)));}, // onsite use only
+    setAdsConfig: function (config) {this.api("set-ads-config", config);},
     watchOnSite: function(muted) {this.api('watch-on-site');},
 
     api: function(command)
