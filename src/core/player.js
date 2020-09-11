@@ -262,6 +262,7 @@ DM.provide('Player',
             {
                 var originDomain = e.origin ? e.origin.replace(/^https?:/, '') : null;
                 if (!originDomain || originDomain.indexOf(DM._domain.www) !== 0) return;
+                if (!e.data || typeof e.data !== 'string') return;
                 if (!DM.Player._IFRAME_ORIGIN) {
                   DM.Player._IFRAME_ORIGIN = e.origin;
                 }
