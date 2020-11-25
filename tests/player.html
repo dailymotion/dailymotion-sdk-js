@@ -152,6 +152,7 @@
             player = DM.player(document.getElementById(id), {
                 video,
                 params: {},
+                referrerpolicy: 'no-referrer',
                 events: {
                     play: function() { console.log('play'); },
                     pause: function() { console.log('pause'); }
