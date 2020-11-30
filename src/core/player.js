@@ -133,6 +133,7 @@ DM.provide('Player',
             width: 480,
             height: 270,
             title: "video player",
+            referrerPolicy: null,
             params: {},
             events: {}
         });
@@ -161,6 +162,9 @@ DM.provide('Player',
         player.setAttribute("frameborder", "0");
         player.setAttribute("allowfullscreen", "true");
         player.setAttribute("allow", "autoplay");
+        if (typeof options.referrerPolicy === 'string') {
+            player.referrerPolicy = options.referrerPolicy
+        }
         player.title = "Dailymotion " + options.title;
         player.type = "text/html";
         player.width = options.width;
