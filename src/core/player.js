@@ -102,6 +102,7 @@ DM.provide('Player',
     subtitle: undefined,
     video: null,
     companionAds: null,
+    adLogs: null,
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -373,6 +374,7 @@ DM.provide('Player',
             case 'subtitlechange': this.subtitle = event.subtitle; break;
             case 'videochange': this.video = { videoId: event.videoId, title: event.title}; break;
             case 'ad_companions': this.companionAds = event.companionAds; break;
+            case 'ad_log': this.adLog = event.args; break;
         }
 
         this._dispatch(event.event);
