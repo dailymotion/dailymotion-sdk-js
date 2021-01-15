@@ -102,7 +102,6 @@ DM.provide('Player',
     subtitle: undefined,
     video: null,
     companionAds: null,
-    adLogs: null,
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -317,14 +316,20 @@ DM.provide('Player',
         }
     },
 
-    _dispatch: document.createEvent ? function(type)
+    _dispatch: document.createEvent ? function(event)
     {
-        var e = document.createEvent("HTMLEvents");
+        const type = event.event
+        const e = document.createEvent("HTMLEvents");
+        // args is set when the player emit a ad_log event with data
+        if(event.args){
+            event.data = event.args
+        }
         e.initEvent(type, true, true);
         this.dispatchEvent(e);
     }
-    : function(type) // IE compat
+    : function(event) // IE compat
     {
+        const type = event.event
         if ('on' + type in this)
         {
             e = document.createEventObject();
@@ -374,10 +379,9 @@ DM.provide('Player',
             case 'subtitlechange': this.subtitle = event.subtitle; break;
             case 'videochange': this.video = { videoId: event.videoId, title: event.title}; break;
             case 'ad_companions': this.companionAds = event.companionAds; break;
-            case 'ad_log': this.adLog = event.args; break;
         }
 
-        this._dispatch(event.event);
+        this._dispatch(event);
     },
 
     // IE compat (DM.copy won't set this if already defined)
