@@ -321,8 +321,8 @@ DM.provide('Player',
         const type = event.event
         const e = document.createEvent("HTMLEvents");
         // args is set when the player emit a ad_log event with data
-        if(event.args){
-            e.data = event.args
+        if (event.event === 'ad_log' && event.args) {
+          e.data = event.args;
         }
         e.initEvent(type, true, true);
         this.dispatchEvent(e);
