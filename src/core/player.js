@@ -316,14 +316,20 @@ DM.provide('Player',
         }
     },
 
-    _dispatch: document.createEvent ? function(type)
+    _dispatch: document.createEvent ? function(event)
     {
-        var e = document.createEvent("HTMLEvents");
+        const type = event.event
+        const e = document.createEvent("HTMLEvents");
+        // args is set when the player emit a ad_log event with data
+        if (event.event === 'ad_log' && event.args) {
+          e.data = event.args;
+        }
         e.initEvent(type, true, true);
         this.dispatchEvent(e);
     }
-    : function(type) // IE compat
+    : function(event) // IE compat
     {
+        const type = event.event
         if ('on' + type in this)
         {
             e = document.createEventObject();
@@ -375,7 +381,7 @@ DM.provide('Player',
             case 'ad_companions': this.companionAds = event.companionAds; break;
         }
 
-        this._dispatch(event.event);
+        this._dispatch(event);
     },
 
     // IE compat (DM.copy won't set this if already defined)
