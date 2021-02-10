@@ -188,6 +188,11 @@ DM.provide('Player',
 
     destroy: function(id)
     {
+        // Use the player's id by default
+        if (!id) {
+            id = this.id;
+        }
+
         var player = DM.Player._INSTANCES[id];
         var anchor = DM.Player._ANCHORS[id];
 
