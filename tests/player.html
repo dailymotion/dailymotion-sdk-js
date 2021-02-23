@@ -104,6 +104,7 @@
             <input type=button value=load prompt="Video Id" default=x2m8jpp>
             <input type=button value=fullscreen>
             <input type=button value=watch-on-site>
+            <input type=button value="loop" prompt="Loop" default=0>
             <span class="float-right">Platform: <span id="platform"></span></span>
         </div>
         <div>
@@ -139,7 +140,7 @@
         // DM._domain.www = '//stage-01.dailymotion.com';
         //DM._domain.www = '//local.dailymotion.com';
         // DM._domain.www = '//localhost:9090';
-        const events = ['apiready', 'play', 'playback_ready', 'playing', 'canplay', 'canplaythrough', 'loadedmetadata', 'timeupdate', 'progress', 'seeking', 'seeked', 'volumechange', 'durationchange', 'controlschange', 'pause', 'start', 'end', 'video_start', 'video_end', 'ended', 'error', 'fullscreenchange', 'qualitiesavailable', 'qualitychange', 'subtitlesavailable', 'subtitlechange', 'ad_start', 'ad_timeupdate', 'ad_play', 'ad_pause', 'ad_end', 'videochange', 'ad_companions'];
+        const events = ['apiready', 'play', 'playback_ready', 'playing', 'canplay', 'canplaythrough', 'loadedmetadata', 'timeupdate', 'progress', 'seeking', 'seeked', 'volumechange', 'durationchange', 'controlschange', 'pause', 'start', 'end', 'video_start', 'video_end', 'ended', 'error', 'fullscreenchange', 'qualitiesavailable', 'qualitychange', 'subtitlesavailable', 'subtitlechange', 'ad_start', 'ad_timeupdate', 'ad_play', 'ad_pause', 'ad_end', 'videochange', 'ad_companions', 'loopchange'];
         const video = 'x730nnd';
         const consoleEl = document.getElementById('console');
         const autoplayEl = document.querySelector('input[name=autoplay]');
@@ -258,6 +259,9 @@
                         break;
                     case 'ad_companions':
                         data = player.companionAds;
+                        break;
+                    case 'loopchange':
+                        data['loop'] = player.loop;
                         break;
                 }
 
