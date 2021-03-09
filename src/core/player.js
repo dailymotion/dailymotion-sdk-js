@@ -381,7 +381,6 @@ DM.provide('Player',
             case 'subtitlechange': this.subtitle = event.subtitle; break;
             case 'videochange': this.video = { videoId: event.videoId, title: event.title}; break;
             case 'ad_companions': this.companionAds = event.companionAds; break;
-            case 'loopchange': this.loop = DM.parseBool(event.loop); break;
         }
 
         this._dispatch(event);
