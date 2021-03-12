@@ -102,6 +102,7 @@ DM.provide('Player',
     subtitle: undefined,
     video: null,
     companionAds: null,
+    loop: false,
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -119,6 +120,7 @@ DM.provide('Player',
     setProp: function() {this.api.apply(this, ['set-prop'].concat([].slice.call(arguments)));}, // onsite use only
     setAdsConfig: function (config) {this.api("set-ads-config", config);},
     watchOnSite: function(muted) {this.api('watch-on-site');},
+    setLoop: function (loop) { this.api('loop', loop);},
 
     api: function(command)
     {
