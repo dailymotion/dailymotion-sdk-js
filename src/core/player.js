@@ -103,6 +103,7 @@ DM.provide('Player',
     video: null,
     companionAds: null,
     loop: false,
+    adData: {},
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -369,7 +370,7 @@ DM.provide('Player',
             case 'playing':
             case 'play': this.paused = false; break;
             case 'end': this.ended = true; break; // no break, also set paused
-            case 'ad_end': this.adData = null;
+            case 'ad_end': this.adData = {};
             case 'ad_pause':
             case 'video_end':
             case 'pause': this.paused = true; break;
