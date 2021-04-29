@@ -103,6 +103,7 @@ DM.provide('Player',
     video: null,
     companionAds: null,
     loop: false,
+    adData: {},
 
     play: function() {this.api('play');},
     togglePlay: function() {this.api('toggle-play');},
@@ -363,14 +364,14 @@ DM.provide('Player',
             case 'fullscreenchange': this.fullscreen = DM.parseBool(event.fullscreen); break;
             case 'controlschange': this.controls = DM.parseBool(event.controls); break;
             case 'volumechange': this.volume = parseFloat(event.volume); this.muted = DM.parseBool(event.muted); break;
+            case 'ad_start': this.adData = event.adData;
             case 'video_start':
-            case 'ad_start':
             case 'ad_play':
             case 'playing':
             case 'play': this.paused = false; break;
             case 'end': this.ended = true; break; // no break, also set paused
+            case 'ad_end': this.adData = {};
             case 'ad_pause':
-            case 'ad_end':
             case 'video_end':
             case 'pause': this.paused = true; break;
             case 'error': this.error = {code: event.code, title: event.title, message: event.message}; break;
