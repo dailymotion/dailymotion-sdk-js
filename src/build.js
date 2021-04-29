@@ -10,6 +10,7 @@ const yuiCompress = require('yuicompressor').compress
     await fs.emptyDir('dist')
     await build('all', header)
     await build('player_api', header)
+    console.log(`SDK built: ${header}`)
     process.exitCode = 0
   }
   catch(error) {
