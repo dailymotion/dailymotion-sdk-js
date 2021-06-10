@@ -380,7 +380,7 @@ DM.provide('Player',
             case 'qualitychange': this.quality = event.quality; break;
             case 'subtitlesavailable': this.subtitles = event.subtitles; break;
             case 'subtitlechange': this.subtitle = event.subtitle; break;
-            case 'videochange': this.video = { videoId: event.videoId, title: event.title}; break;
+            case 'videochange': this.video = { videoId: event.videoId, title: event.title, duration: parseFloat(event.duration) }; break;
             case 'ad_companions': this.companionAds = event.companionAds; break;
         }
 
