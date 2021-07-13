@@ -82,7 +82,6 @@ DM.provide('Player',
 
     // video properties
     _environmentInfo: null,
-    apiReady: false,
     autoplay: false,
     currentTime: 0,
     bufferedTime: 0,
@@ -300,11 +299,6 @@ DM.provide('Player',
 
     _send: function(command, parameters)
     {
-        if (!this.apiReady) {
-            DM.warn('Player not ready. Ignoring command : "'+command+'"');
-            return;
-        }
-
         if (DM.Player.API_MODE == 'postMessage')
         {
             if (!this.contentWindow || typeof this.contentWindow.postMessage !== 'function') {
@@ -315,7 +309,7 @@ DM.provide('Player',
             this.contentWindow.postMessage(JSON.stringify({
                 command    : command,
                 parameters : parameters || []
-            }), DM.Player._IFRAME_ORIGIN);
+            }), `https:${DM._domain.www}`);
         }
     },
 
@@ -352,7 +346,6 @@ DM.provide('Player',
     {
         switch (event.event)
         {
-            case 'apiready': if (this.apiReady) return /* dispatch only once */; else this.apiReady = true; this._environmentInfo = event.info || null; break;
             case 'start': this.ended = false; break;
             case 'loadedmetadata': this.error = null; break;
             case 'timeupdate': // no break statement here
