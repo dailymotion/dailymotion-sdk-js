@@ -3,6 +3,7 @@ See documentation at https://developer.dailymotion.com/tools/sdks#sdk-javascript
 Please, don't host this script by yourself, always prefer http://api.dmcdn.net/all.js.
 We only provide this github project for you to understand what you'll embed in your pages.
 
+# Js SDK
 
 - [Embed the player {#embedding}](#embed-the-player---embedding-)
   * [Overview](#overview)
