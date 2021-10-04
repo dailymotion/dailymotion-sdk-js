@@ -41,66 +41,6 @@ To get the full feature list please visit our [dedicated page](https://www.daily
 
 Depending on your needs, you can either embed the player using an iframe, or use our dedicated Web or Mobile SDKs for complete control of the user experience.
 
-
-### iFrame {#player-html}
-
-The `iframe` embed method is the fastest way to integrate the Dailymotion Player on your website. Dailymotion delivers the HTML5 player via an `iframe` to ease the integration for most common use cases, while supporting all the costs for the video encoding, streaming, storage and support.
-
-#### How to use {#player-how-to}
-1. Retrieve the iframe:
-    - If you are  Partner you can log in to the Partner HQ website, choose the video from the Media section, and select the "share" option to copy the code.
-    - Otherwise, on [dailymotion.com](https://www.dailymotion.com), navigate to the video page with the video you want to embed, click the share button and then copy the provided embed code.
-    - Or call our Data API with the video ID and get the code in the JSON response.
-    
-    ```html
-    GET https://api.dailymotion.com/video/x7tgad0?fields=embed_html
-    ```
-    
-    ```html
-    RESPONSE{
-        "embed_html": "<iframe frameborder=\\"0\\" width=\\"640\\" height=\\"360\\" src=\\"<https://www.dailymotion.com/embed/video/x7tgad0\\>"; allowfullscreen allow=\\"autoplay\\"></iframe>"
-    }
-    ```
-    - Or you can obtain it through the [oEmbed protocol](#player-oembed)
-
-2. Paste the iframe code snippet on your site, exactly where you want the player to be displayed.
-    ```html
-    <iframe frameborder="0" width="640" height="360" 
-        src="https://www.dailymotion.com/embed/video/x7tgad0" 
-        allowfullscreen 
-        allow="autoplay; fullscreen">
-    </iframe>
-    ```
-
-#### Best practices {#player-best-practices}
-
-**Use player params correctly:**  
-To customize the player in the `iframe`,  add a `?` character directly after the video ID in the `src` attribute of the `iframe`,then add any of the available parameters. To use multiple parameters at once, separate each parameter with an &.  
-Please find the full list of available parameters [here.](#player-parameters)
-
-```html
-<iframe frameborder="0" width="640" height="360"
-    src="https://www.dailymotion.com/embed/video/x7tgad0?autoplay=1&ui-highlight=fff"
-    allowfullscreen
-    allow="autoplay; fullscreen">
-</iframe>
-```
-
-**Preserve aspect ratio:**  
-The Dailymotion Player is fully responsive, but by default, iFrames themselves are not. To ensure the player preserves its aspect ratio across all devices and screen sizes, we use specific styles and put the `iframe` inside a `div`. partners can choose between a standard or responsive player embed in their Partner HQ via the media sharing window.
-
-```html
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
-	<iframe style="width:100%;height:100%;position:absolute;left:0px;top:0px;overflow:hidden"
-	frameborder="0" type="text/html" 
-	src="https://www.dailymotion.com/embed/video/x7tgad0?autoplay=1" 
-	width="100%" height="100%"   
-	allow="autoplay" allowfullscreen>
-	</iframe>
-</div>
-```
-
-
 ### Web SDK (JavaScript) {#embed-sdk-js}
 The Web SDK provides access to the Player API for full control of the player on your website or applications. It's even possible to remove the default controls and develop your own, for a completely custom look and feel.
 
