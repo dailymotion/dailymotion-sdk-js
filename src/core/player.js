@@ -120,6 +120,7 @@ DM.provide('Player',
     toggleControls: function () { this.api('toggle-controls');},
     setProp: function() {this.api.apply(this, ['set-prop'].concat([].slice.call(arguments)));}, // onsite use only
     setAdsConfig: function (config) {this.api("set-ads-config", config);},
+    setCustConfig: function (config) {this.api("set-ads-config", config);},
     watchOnSite: function(muted) {this.api('watch-on-site');},
     setLoop: function (loop) { this.api('loop', loop);},
 
@@ -235,6 +236,12 @@ DM.provide('Player',
         if (DM._apiKey)
         {
             params.apiKey = DM._apiKey;
+        }
+
+        // ads_params (deprecated) convertion to cust_params
+        if (params.ads_params && !params.cust_params) {
+            params.cust_params = params.ads_params
+            delete params.ads_params
         }
 
         if (video && playlist) {
