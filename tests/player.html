@@ -152,9 +152,7 @@
         function createPlayer(id) {
             player = DM.player(document.getElementById(id), {
                 video,
-                params: {
-                  ads_params: 'must_be_cust_params',
-                },
+                params: {},
                 referrerPolicy: 'no-referrer-when-downgrade',
                 events: {
                     play: function() { console.log('play'); },
