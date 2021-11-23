@@ -238,12 +238,6 @@ DM.provide('Player',
             params.apiKey = DM._apiKey;
         }
 
-        // ads_params (deprecated) convertion to cust_params
-        if (params.ads_params && !params.cust_params) {
-            params.cust_params = params.ads_params
-            delete params.ads_params
-        }
-
         if (video && playlist) {
             params.playlist = playlist;
         }
