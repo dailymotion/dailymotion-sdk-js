@@ -1,3 +1,8 @@
+⚠️WARNING⚠️
+
+Please be aware we are in the process of discontinuing support for this product. We recommend all partners to utilize our new standard embed method and library. All documentation can be found in the official developer doc [here](https://developer.dailymotion.com/player/#embed-website).
+
+
 See documentation at https://developer.dailymotion.com/tools/sdks#sdk-javascript
 
 Please, don't host this script by yourself, always prefer http://api.dmcdn.net/all.js.
