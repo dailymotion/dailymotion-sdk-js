@@ -242,6 +242,8 @@ DM.provide('Player',
             params.playlist = playlist;
         }
 
+        params.pubtool = 'jssdk'
+
         this.id = params.id = this.id ? this.id : DM.guid();
         this.src = 'https:' + DM._domain.www + this._getPathname(video, playlist) + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
