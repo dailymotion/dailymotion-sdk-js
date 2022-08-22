@@ -242,7 +242,9 @@ DM.provide('Player',
             params.playlist = playlist;
         }
 
-        params.pubtool = 'jssdk'
+        // CPE is using SDK under the hood. So if params.pubtool is already set, we use it
+        // so CPE integration will have pubtool = cpe
+        params.pubtool = params.pubtool || 'jssdk'
 
         this.id = params.id = this.id ? this.id : DM.guid();
         this.src = 'https:' + DM._domain.www + this._getPathname(video, playlist) + '?' + DM.QS.encode(params);
