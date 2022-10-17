@@ -246,6 +246,10 @@ DM.provide('Player',
         // so CPE integration will have pubtool = cpe
         params.pubtool = params.pubtool || 'jssdk'
 
+        if (params.pubtool === 'jssdk') {
+            console.warn('DEPRECATED: Legacy JS SDK integration method is deprecated. Please consider using Player Embeds https://faq.dailymotion.com/hc/en-us/articles/4411096679954-Integrate-your-Player-Embed');
+        }
+
         this.id = params.id = this.id ? this.id : DM.guid();
         this.src = 'https:' + DM._domain.www + this._getPathname(video, playlist) + '?' + DM.QS.encode(params);
         if (DM.Player._INSTANCES[this.id] != this)
