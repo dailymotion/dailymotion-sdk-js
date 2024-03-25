@@ -1,4 +1,4 @@
-FROM node:12.6.0
+FROM node:18.19.1
 
 LABEL maintainer "Player Squad <squad-player@dailymotion.com>"
 
