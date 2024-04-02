@@ -29,7 +29,7 @@ DM.provide('',
 {
     player: function(element, options)
     {
-        // console.warn('This integration method is deprecated. We advise using Player Embeds https://faq.dailymotion.com/hc/en-us/articles/4411096679954-Integrate-your-Player-Embed');
+        console.warn('This integration method is deprecated. We advise using Player Embeds https://faq.dailymotion.com/hc/en-us/articles/4411096679954-Integrate-your-Player-Embed');
 
         element = DM.$(element);
         if (!element || element.nodeType !== Node.ELEMENT_NODE)
@@ -37,31 +37,31 @@ DM.provide('',
         if (!options || typeof options !== 'object')
             throw new Error("Missing 'options' parameter for DM.player()");
 
-        // return {
-        //     addEventListener: function() {},
-        //     create: function() {},
-        //     destroy: function() {},
-        //     api: function() {},
+        return {
+            addEventListener: function() {},
+            create: function() {},
+            destroy: function() {},
+            api: function() {},
 
-        //     play: function() {},
-        //     togglePlay: function() {},
-        //     pause: function() {},
-        //     seek: function() {},
-        //     load: function() {},
-        //     setMuted: function() {},
-        //     toggleMuted: function() {},
-        //     setVolume: function() {},
-        //     setQuality: function() {},
-        //     setSubtitle: function() {},
-        //     setFullscreen: function() {},
-        //     setControls: function() {},
-        //     toggleControls: function() {},
-        //     setProp: function() {},
-        //     setAdsConfig: function() {},
-        //     setCustConfig: function() {},
-        //     watchOnSite: function() {},
-        //     setLoop: function() {},
-        // }
+            play: function() {},
+            togglePlay: function() {},
+            pause: function() {},
+            seek: function() {},
+            load: function() {},
+            setMuted: function() {},
+            toggleMuted: function() {},
+            setVolume: function() {},
+            setQuality: function() {},
+            setSubtitle: function() {},
+            setFullscreen: function() {},
+            setControls: function() {},
+            toggleControls: function() {},
+            setProp: function() {},
+            setAdsConfig: function() {},
+            setCustConfig: function() {},
+            watchOnSite: function() {},
+            setLoop: function() {},
+        }
 
         if (DM.Player._INSTANCES[element.id] !== undefined) {
             element = DM.Player.destroy(element.id);
